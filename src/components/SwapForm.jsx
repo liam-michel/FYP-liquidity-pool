@@ -1,3 +1,4 @@
+'use client';
 import * as React from "react";
 import { useState, useEffect } from "react"; // Import useState
 
@@ -13,7 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-
+import { callIncrement } from "@/lib/contractFuncs";
 import '../styles/styles.css';
 
 export function SwapForm() {
@@ -37,7 +38,7 @@ export function SwapForm() {
     <Card className="w-[350px]" style={{background: 'turquoise'}}>
       <CardHeader>
         <div className="flex justify-between items-center">
-          <CardTitle>Token Swap</CardTitle>
+          <CardTitle>{!isSwapped? "Token Swap A to B": "Token Swap B to A"}</CardTitle>
           <Avatar>
             <AvatarImage src="two-arrows.svg" onClick={() => setIsSwapped(!isSwapped)} className="shadow-hover-effect" />
             <AvatarFallback>CN</AvatarFallback>
@@ -56,12 +57,17 @@ export function SwapForm() {
               <Label htmlFor="tokenB">{isSwapped ? "Token A Count" : "Token B Count"}</Label>
               <Input id="tokenB" placeholder="Amount" value={!isSwapped? tokenB: tokenA} onChange = {e => !isSwapped? setTokenB(e.target.value): setTokenA(e.target.value)} />
             </div>
+            <div className="flex flex-col space-y-1.5">
+              <Label htmlFor="Slippage">Slippage Limit (%)</Label>
+              <Input id="slippage" placeholder="Percentage"/>
+            </div>
+            <Button onClick = {async(e) => await callIncrement(e)}>callIncrement</Button>
           </div>
         </form>
       </CardContent>
       <CardFooter className="flex justify-between">
         <Button variant="outline">Cancel</Button>
-        <Button>Swap</Button>
+        <Button onClick = {e => console.log('hi')}>Swap</Button>
       </CardFooter>
     </Card>
   );

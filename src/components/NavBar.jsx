@@ -34,8 +34,10 @@ export const ConnectWalletButton = () => {
     <div className="relative">
       {connected ? (
         <Popover>
-          <PopoverTrigger>
-            <Button>{formatAddress(account)}</Button>
+          <PopoverTrigger asChild>
+            <div className="cursor-pointer">
+              <Button>{formatAddress(account)}</Button>
+            </div>
           </PopoverTrigger>
           <PopoverContent className="mt-2 w-44 bg-gray-100 border rounded-md shadow-lg right-0 z-10 top-10">
             <button
@@ -48,12 +50,13 @@ export const ConnectWalletButton = () => {
         </Popover>
       ) : (
         <Button disabled={connecting} onClick={connect}>
-         Connect Wallet
+           Connect Wallet
         </Button>
       )}
     </div>
   );
 };
+
 
 export const NavBar = () => {
   const host =
