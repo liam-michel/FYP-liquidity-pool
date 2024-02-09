@@ -1,18 +1,6 @@
 
 import Web3 from 'web3';
 import {abi} from './abi.js'
-import detectEthereumProvider from '@metamask/detect-provider';
-import { useSDK, MetaMaskProvider } from "@metamask/sdk-react";
-import { formatAddress } from "../lib/utils";
-
-
-export const rpcUrl = "https://rpc.sepolia.org";
-export const web3 = new Web3(window.ethereum);  
-
-export const contractAddress = "0x7d40a1C72dABA9a10CBAFcC2c8beEbc2c76d393c"
-
-export const contract = new web3.eth.Contract(abi, contractAddress);
-
 
 export const readCount = async() =>{
   const count = await contract.methods.viewCount().call();
@@ -35,6 +23,13 @@ export const callAccounts = async (e) => {
 }
 
 export const callIncrement = async(e) => {
+  const rpcUrl = "https://rpc.sepolia.org";
+  const web3 = new Web3(window.ethereum);  
+
+  const contractAddress = "0x7d40a1C72dABA9a10CBAFcC2c8beEbc2c76d393c"
+
+  const contract = new web3.eth.Contract(abi, contractAddress);
+
   e.preventDefault();
   const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' })
   const account = accounts[0]
