@@ -22,3 +22,7 @@
   background-color: #008CBA;
   color: white;
 }
+
+.TabsContent .tab-card{
+  background-color: purple;
+}

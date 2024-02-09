@@ -23,7 +23,7 @@ export const ConnectWalletButton = () => {
       console.warn(`No accounts found`, err);
     }
   };
-
+ 
   const disconnect = () => {
     if (sdk) {
       sdk.terminate();
@@ -72,18 +72,16 @@ export const NavBar = () => {
   };
 
   return (
-    <nav className="flex items-center justify-between max-w-screen-xl px-6 mx-auto py-7 rounded-xl">
-      <Link href="/" className="flex gap-1 px-6">
-        <span className="hidden text-2xl font-bold sm:block">
-          <span className="text-gray-900">Template</span>
-        </span>
-      </Link>
-      <div className="flex gap-4 px-6">
-        <MetaMaskProvider debug={false} sdkOptions={sdkOptions}>
-          <ConnectWalletButton />
-        </MetaMaskProvider>
-      </div>
-    </nav>
+<nav className="flex items-center justify-between max-w-screen-xl px-6 mx-auto py-7 rounded-xl bg-">
+  <div className="flex-1"> 
+    {/* If you have a logo or other elements on the left side, they go here */}
+  </div>
+  <div className="flex gap-4 px-6 justify-end">
+    <MetaMaskProvider debug={false} sdkOptions={sdkOptions}>
+      <ConnectWalletButton />
+    </MetaMaskProvider>
+  </div>
+</nav>
   );
 };
 

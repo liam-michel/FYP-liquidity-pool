@@ -14,7 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { callIncrement } from "@/lib/contractFuncs";
+import { callAccounts, callIncrement, readCount } from "@/lib/contractFuncs";
 import '../styles/styles.css';
 
 export function SwapForm() {
@@ -22,6 +22,9 @@ export function SwapForm() {
   const [isSwapped, setIsSwapped] = useState(false);
   const [tokenA, setTokenA] = useState(0);
   const [tokenB, setTokenB] = useState(0);
+  const [count, setCount] = useState(0);
+
+
 
   useEffect(() => {
     if(!isSwapped){
@@ -33,12 +36,19 @@ export function SwapForm() {
   }, [tokenA, tokenB])
 
 
+  useEffect(() =>{
+    const fetchCount = async () => {
+      const fetchedCount = await readCount();
+      setCount(fetchedCount);
+    };
+    fetchCount().catch(console.error);
+  }, [])
 
   return (
     <Card className="w-[350px]" style={{background: 'turquoise'}}>
       <CardHeader>
         <div className="flex justify-between items-center">
-          <CardTitle>{!isSwapped? "Token Swap A to B": "Token Swap B to A"}</CardTitle>
+          <CardTitle style={{ fontSize: '1.25rem'}}>{!isSwapped? "Token Swap A to B": "Token Swap B to A"}</CardTitle>
           <Avatar>
             <AvatarImage src="two-arrows.svg" onClick={() => setIsSwapped(!isSwapped)} className="shadow-hover-effect" />
             <AvatarFallback>CN</AvatarFallback>
@@ -61,13 +71,12 @@ export function SwapForm() {
               <Label htmlFor="Slippage">Slippage Limit (%)</Label>
               <Input id="slippage" placeholder="Percentage"/>
             </div>
-            <Button onClick = {async(e) => await callIncrement(e)}>callIncrement</Button>
+
           </div>
         </form>
       </CardContent>
-      <CardFooter className="flex justify-between">
-        <Button variant="outline">Cancel</Button>
-        <Button onClick = {e => console.log('hi')}>Swap</Button>
+      <CardFooter className="flex justify-center">
+        <Button style={{ padding: '10px 20px', fontSize: '1.25rem' }} onClick = {e => console.log('hi')}>Swap</Button>
       </CardFooter>
     </Card>
   );
