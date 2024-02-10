@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 
-
 import { Button } from "./ui/button";
 
 import { useSDK, MetaMaskProvider } from "@metamask/sdk-react";
@@ -23,7 +22,7 @@ export const ConnectWalletButton = () => {
       console.warn(`No accounts found`, err);
     }
   };
- 
+
   const disconnect = () => {
     if (sdk) {
       sdk.terminate();
@@ -36,7 +35,9 @@ export const ConnectWalletButton = () => {
         <Popover>
           <PopoverTrigger asChild>
             <div className="cursor-pointer">
-              <Button>{formatAddress(account)}</Button>
+              <Button style={{ transform: "scale(1.5)" }} variant="destructive">
+                Connected
+              </Button>
             </div>
           </PopoverTrigger>
           <PopoverContent className="mt-2 w-44 bg-gray-100 border rounded-md shadow-lg right-0 z-10 top-10">
@@ -49,14 +50,18 @@ export const ConnectWalletButton = () => {
           </PopoverContent>
         </Popover>
       ) : (
-        <Button disabled={connecting} onClick={connect}>
-           Connect Wallet
+        <Button
+          disabled={connecting}
+          onClick={connect}
+          style={{ transform: "scale(1.5)" }}
+          variant="destructive"
+        >
+          Connect Wallet
         </Button>
       )}
     </div>
   );
 };
-
 
 export const NavBar = () => {
   const host =
@@ -72,16 +77,19 @@ export const NavBar = () => {
   };
 
   return (
-<nav className="flex items-center justify-between max-w-screen-xl px-6 mx-auto py-7 rounded-xl bg-">
-  <div className="flex-1"> 
-    {/* If you have a logo or other elements on the left side, they go here */}
-  </div>
-  <div className="flex gap-4 px-6 justify-end">
-    <MetaMaskProvider debug={false} sdkOptions={sdkOptions}>
-      <ConnectWalletButton />
-    </MetaMaskProvider>
-  </div>
-</nav>
+    <nav
+      className="flex items-center justify-between px-6 py-7 rounded-xl w-full"
+      style={{ background: "black" }}
+    >
+      <div className="flex-1">
+        {/* If you have a logo or other elements on the left side, they go here */}
+      </div>
+      <div className="flex gap-4 px-6 justify-end">
+        <MetaMaskProvider debug={false} sdkOptions={sdkOptions}>
+          <ConnectWalletButton />
+        </MetaMaskProvider>
+      </div>
+    </nav>
   );
 };
 
