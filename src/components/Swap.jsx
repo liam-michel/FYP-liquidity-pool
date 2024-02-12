@@ -2,7 +2,7 @@ import * as React from "react";
 import { useState, useEffect } from "react"; // Import useState
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { callAccounts, callIncrement, readCount } from "@/lib/contractFuncs";
+import { callAccounts, callIncrement, readCount } from "@/lib/testContract";
 import { Button } from "@/components/ui/button";
 import {
   Card,

@@ -1,13 +1,13 @@
 "use client";
 import * as React from "react";
 import { useState, useEffect } from "react"; // Import useState
-import { callAccounts, callIncrement, readCount } from "@/lib/contractFuncs";
+import { callAccounts, callIncrement, readCount } from "@/lib/testContract";
 
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import Swap from "@/components/Swap.jsx";
 import Deposit from "@/components/Deposit";
-import MintToken from "@/components/MintTokens";
+import MintTokens from "@/components/MintTokens";
 
 import "../styles/styles.css";
 
@@ -39,7 +39,7 @@ export function SwapAndDeposit() {
       <TabsList className="grid w-full grid-cols-3">
         <TabsTrigger value="swap">Swap</TabsTrigger>
         <TabsTrigger value="deposit">Deposit</TabsTrigger>
-        <TabsTrigger value="getTokens">getTokens</TabsTrigger>
+        <TabsTrigger value="gettokens">getTokens</TabsTrigger>
       </TabsList>
       <Swap
         isSwapped={isSwapped}
@@ -51,7 +51,7 @@ export function SwapAndDeposit() {
       ></Swap>
 
       <Deposit></Deposit>
-      <MintToken></MintToken>
+      <MintTokens></MintTokens>
     </Tabs>
   );
 }

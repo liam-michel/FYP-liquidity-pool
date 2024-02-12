@@ -1,9 +1,6 @@
 import * as React from "react";
-import { useState, useEffect } from "react"; // Import useState
+import { useState } from "react";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { callAccounts, callIncrement, readCount } from "@/lib/contractFuncs";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -14,33 +11,40 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-export default function MintTokens() {
-  const [token, setToken] = useState(true);
+import { Button } from "@/components/ui/button";
+import { TabsContent } from "@/components/ui/tabs";
 
-  useEffect(() => {});
+export default function MintTokens() {
+  // State and effects can be defined here if needed
+
   return (
-    <TabsContent value="deposit">
+    <TabsContent value="gettokens">
       <Card className="tab-card">
         <CardHeader>
-          <CardTitle>Deposit</CardTitle>
+          <CardTitle>Fetch Token A and Token B</CardTitle>
           <CardDescription>
-            Change your deposit here. After saving, you will be logged out.
+            Here you can mint some token A and token B for swaps / liqudity
+            deposits
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-2">
-          <div className="space-y-1">
-            <Label htmlFor="current">Current deposit</Label>
-            <Input id="current" type="deposit" />
-          </div>
-          <div className="space-y-1">
-            <Label htmlFor="new">New deposit</Label>
-            <Input id="new" type="deposit" />
+          {/* Parent div for two columns */}
+          <div className="grid grid-cols-2 gap-4">
+            {/* First Column */}
+            <div className="space-y-2">
+              <Label htmlFor="current">Token A Count</Label>
+              <Input id="current" type="text" />{" "}
+              {/* Assuming type should be text */}
+              <Button>Mint Token A</Button>
+            </div>
+            {/* Second Column */}
+            <div className="space-y-2">
+              <Label htmlFor="new">Token B Count</Label>
+              <Input id="new" type="text" /> <Button>Mint Token B</Button>
+              {/* Assuming type should be text */}
+            </div>
           </div>
         </CardContent>
-        <CardFooter>
-          <Button>Save deposit</Button>
-        </CardFooter>
       </Card>
     </TabsContent>
   );
