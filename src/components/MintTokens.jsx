@@ -1,6 +1,10 @@
+"use client";
+
+import { t1Address, t2Address } from "@/lib/constants";
+
 import * as React from "react";
 import { useState } from "react";
-
+import { useSDK } from "@metamask/sdk-react";
 import {
   Card,
   CardContent,
@@ -16,6 +20,7 @@ import { TabsContent } from "@/components/ui/tabs";
 
 export default function MintTokens() {
   // State and effects can be defined here if needed
+  const { sdk, connected, connecting, account } = useSDK();
 
   return (
     <TabsContent value="gettokens">

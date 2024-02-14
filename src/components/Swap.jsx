@@ -2,7 +2,6 @@ import * as React from "react";
 import { useState, useEffect } from "react"; // Import useState
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { callAccounts, callIncrement, readCount } from "@/lib/testContract";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -14,16 +13,29 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { TabsContent } from "@/components/ui/tabs";
+import { Slider } from "@/components/ui/slider";
+export default function Swap() {
+  const [isSwapped, setIsSwapped] = useState(false);
+  const [tokenA, setTokenA] = useState(0);
+  const [tokenB, setTokenB] = useState(0);
+  const [slippage, setSlippage] = useState(1);
 
-export default function Swap({
-  isSwapped,
-  setIsSwapped,
-  tokenA,
-  setTokenA,
-  tokenB,
-  setTokenB,
-}) {
+  useEffect(() => {
+    if (!isSwapped) {
+      //then I need to update the value in 2nd box
+      setTokenB(tokenA * 2);
+    } else {
+      setTokenA(tokenB / 2);
+    }
+  }, [tokenA, tokenB, isSwapped]);
+
+  const handleSlippageChange = (value) => {
+    if (!isNaN(value) && value >= 0 && value <= 10) {
+      setSlippage(value);
+    }
+  };
+
   return (
     <TabsContent value="swap">
       <Card className="tab-card" style={{ background: "turquoise" }}>
@@ -68,9 +80,19 @@ export default function Swap({
               }
             />
           </div>
-          <div className="space-y-1">
+          <div className="flex items-center space-x-2">
             <Label>Max acceptable Slippage (%)</Label>
-            <Input placeholder="Amount" />
+            <Slider
+              value={[slippage]}
+              max={10}
+              step={0.05}
+              onValueChange={(e) => handleSlippageChange(e)}
+            />
+            <Input
+              value={slippage}
+              onChange={(e) => handleSlippageChange(e.target.value)}
+              type="number"
+            ></Input>
           </div>
         </CardContent>
         <CardFooter className="flex justify-center items-center">

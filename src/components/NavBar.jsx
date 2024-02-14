@@ -1,11 +1,8 @@
 "use client";
 
-import Link from "next/link";
-
 import { Button } from "./ui/button";
 
-import { useSDK, MetaMaskProvider } from "@metamask/sdk-react";
-import { formatAddress } from "../lib/utils";
+import { useSDK } from "@metamask/sdk-react";
 import {
   Popover,
   PopoverTrigger,
@@ -85,9 +82,7 @@ export const NavBar = () => {
         {/* If you have a logo or other elements on the left side, they go here */}
       </div>
       <div className="flex gap-4 px-6 justify-end">
-        <MetaMaskProvider debug={false} sdkOptions={sdkOptions}>
-          <ConnectWalletButton />
-        </MetaMaskProvider>
+        <ConnectWalletButton />
       </div>
     </nav>
   );

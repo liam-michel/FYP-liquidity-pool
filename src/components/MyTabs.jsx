@@ -1,10 +1,10 @@
 "use client";
 import * as React from "react";
 import { useState, useEffect } from "react"; // Import useState
-import { callAccounts, callIncrement, readCount } from "@/lib/testContract";
-
+import { addTokensToWallet } from "@/lib/mintTokens";
+import { useSDK } from "@metamask/sdk-react";
+import { Button } from "./ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
 import Swap from "@/components/Swap.jsx";
 import Deposit from "@/components/Deposit";
 import MintTokens from "@/components/MintTokens";
@@ -12,46 +12,30 @@ import MintTokens from "@/components/MintTokens";
 import "../styles/styles.css";
 
 export function SwapAndDeposit() {
-  const [isSwapped, setIsSwapped] = useState(false);
-  const [tokenA, setTokenA] = useState(0);
-  const [tokenB, setTokenB] = useState(0);
-  const [count, setCount] = useState(0);
-
-  useEffect(() => {
-    if (!isSwapped) {
-      //then I need to update the value in 2nd box
-      setTokenB(tokenA * 2);
-    } else {
-      setTokenA(tokenB / 2);
-    }
-  }, [tokenA, tokenB]);
-
-  useEffect(() => {
-    const fetchCount = async () => {
-      const fetchedCount = await readCount();
-      setCount(fetchedCount);
-    };
-    fetchCount().catch(console.error);
-  }, []);
+  const { sdk, connected, connecting, account } = useSDK();
 
   return (
-    <Tabs defaultValue="swap" className="w-[400px]">
-      <TabsList className="grid w-full grid-cols-3">
-        <TabsTrigger value="swap">Swap</TabsTrigger>
-        <TabsTrigger value="deposit">Deposit</TabsTrigger>
-        <TabsTrigger value="gettokens">getTokens</TabsTrigger>
-      </TabsList>
-      <Swap
-        isSwapped={isSwapped}
-        setIsSwapped={setIsSwapped}
-        tokenA={tokenA}
-        setTokenA={setTokenA}
-        tokenB={tokenB}
-        setTokenB={setTokenB}
-      ></Swap>
+    <>
+      <Button
+        style={{ marginBottom: "8px" }}
+        onClick={(e) => addTokensToWallet()}
+        disabled={!connected}
+      >
+        {connected
+          ? "Add Test tokens to wallet"
+          : "Add Test tokens to wallet - Connect Wallet first"}
+      </Button>
+      <Tabs defaultValue="swap" className="w-[400px]">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="swap">Swap</TabsTrigger>
+          <TabsTrigger value="deposit">Deposit</TabsTrigger>
+          <TabsTrigger value="gettokens">getTokens</TabsTrigger>
+        </TabsList>
 
-      <Deposit></Deposit>
-      <MintTokens></MintTokens>
-    </Tabs>
+        <Swap></Swap>
+        <Deposit></Deposit>
+        <MintTokens></MintTokens>
+      </Tabs>
+    </>
   );
 }
