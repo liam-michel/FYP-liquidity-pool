@@ -5,6 +5,8 @@ pragma solidity ^0.8.20;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "./LPToken.sol";
 // 00000000000000000
+//5000000000000000000
+//10000000000000000000
 contract LiquidityPool{
     
     address LPTOKEN_ADDRESS;
@@ -35,7 +37,7 @@ contract LiquidityPool{
         return lp.totalSupply();
 
     }
-
+    
     function sqrt(uint y) internal pure returns (uint z) {
         if (y > 3) {
             z = y;
@@ -116,23 +118,27 @@ contract LiquidityPool{
 
         //update reserves after burning shared
         updateReserves(
-            token1.balanceOf(address(msg.sender)),
-            token2.balanceOf(address(msg.sender))
+            token1.balanceOf(address(this)),
+            token2.balanceOf(address(this))
         );
 
     }
 
-    function swap(address _token, uint amountIn) external validSwap(_token) returns(uint out ){
+    function swap(address _token, uint countIn) external validSwap(_token) returns(uint amountOut ){
         //check what token we are receiving
         bool isToken1 = (_token == address(token1));
-        (ERC20 tokenOut, uint inReserve, uint outReserve ) = isToken1? (token2, token1_reserve, token2_reserve): (token1, token2_reserve, token1_reserve);
+        (ERC20 tokenIn, ERC20 tokenOut, uint inReserve, uint outReserve ) = isToken1? (token1, token2, token1_reserve, token2_reserve): (token2, token1, token2_reserve, token1_reserve);
 
         //calculate amount of token in (with fee of 0.3%)
-        uint amountInWithFee = (amountIn * 997) / 1000;
+        uint countInWithFee = (countIn * 997) / 1000;
         //dy = ydx / x + dx 
-        out =  (outReserve * amountInWithFee) / (inReserve + amountInWithFee );
-        //transfer the 'out' amount of tokens to sender
-        tokenOut.transfer(msg.sender, out);
+        amountOut =  (outReserve * countInWithFee) / (inReserve + countInWithFee );
+
+        //transfer the 'inToken' in
+        tokenIn.transferFrom(msg.sender, address(this), countIn);
+        //transfer the 'amountOut' amount of tokens to sender
+        tokenOut.transfer(msg.sender, amountOut);
+
         //update the reserves to reflect new balances;
         updateReserves(token1.balanceOf(address(this)), token2.balanceOf(address(this)));
 
