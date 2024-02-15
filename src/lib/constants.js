@@ -1,7 +1,7 @@
 export const t1Address = undefined;
 export const t2Address = undefined;
 export const LPAddress = undefined;
-
+export const rpc = "https://rpc.sepolia.org";
 export const testContractABI = [
   {
     anonymous: false,

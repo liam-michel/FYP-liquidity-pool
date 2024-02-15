@@ -3,21 +3,25 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+// 00000000000000000
 
-contract SwapTokenContract is ERC20 {
+contract SwapToken is ERC20 {
     constructor(uint256 initialSupply, string memory name, string memory symbol) ERC20(name, symbol) {
         _mint(msg.sender, initialSupply);
     }
 
     function mint(uint amount) public {
-        require(amount >= 1000);
+        require(amount <= 1000 * 10 ** uint(decimals()));
         _mint(msg.sender, amount);
     }
     
     function burn(uint amount) public {
-        require(balanceOf(msg.sender) >= amount);
+        require(balanceOf(msg.sender) <= amount);
         _burn(msg.sender, amount);
+    }
 
+    function showDecimals() public view returns(uint){
+        return decimals();
 
     }
 

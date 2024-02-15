@@ -1,18 +1,25 @@
 // SPDX-License-Identifier: GPL-3.0
 
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.20;
 
-import "contracts/ERC20.sol";
-
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "./LPToken.sol";
+// 00000000000000000
 contract LiquidityPool{
     
-    address LP_Token;
+    address LPTOKEN_ADDRESS;
     ERC20 public token1;
     ERC20 public token2;
 
     uint public token1_reserve;
     uint public token2_reserve;
 
+    constructor(address _t1, address _t2, address _lptoken){
+        token1 = ERC20(_t1);
+        token2 = ERC20(_t2);
+        LPTOKEN_ADDRESS = _lptoken;
+
+    }
 
     
     modifier validSwap(address _token){
@@ -20,11 +27,11 @@ contract LiquidityPool{
         _;
     }
     function setLPTokenAddress(address _LPToken) external {
-        LP_Token = _LPToken;
+        LPTOKEN_ADDRESS = _LPToken;
     }
 
     function callToken() external view returns(uint){
-        ERC20 lp = ERC20(LP_Token);
+        ERC20 lp = ERC20(LPTOKEN_ADDRESS);
         return lp.totalSupply();
 
     }
@@ -60,8 +67,8 @@ contract LiquidityPool{
         }
         
         //call into LP Token smart contract to get total supply
-        ERC20 LPToken = ERC20(LP_Token);
-        uint current_totalSupply = LPToken.totalSupply();
+        LPToken lptoken = LPToken(LPTOKEN_ADDRESS);
+        uint current_totalSupply = lptoken.totalSupply();
         //i.e no shares have been minted (this is first bit of liquidity)
         if(current_totalSupply == 0) {
             shares = sqrt(_amount1 * _amount2);
@@ -73,7 +80,7 @@ contract LiquidityPool{
         }
         require(shares > 0, "Minted shares must be greater than zero" );
         //mint the shares
-        LPToken.mint(msg.sender, shares);
+        lptoken.mint(msg.sender, shares);
         
         //update reserves after minting 
         updateReserves(
@@ -88,13 +95,13 @@ contract LiquidityPool{
         //we want to return amount of liquidity that is proportional to the # of shares this lp provider has
         require(_shareCount > 0);
         //enable calling of LPToken smart contract
-        ERC20 LPToken = ERC20(LP_Token); 
+        LPToken lptoken = LPToken(LPTOKEN_ADDRESS);
 
         //fetch senders LPToken balance
-        uint senderBalance = LPToken.balanceOf(msg.sender);
+        uint senderBalance = lptoken.balanceOf(msg.sender);
         require(_shareCount <= senderBalance);
         
-        uint LPTotalSupply = LPToken.totalSupply();
+        uint LPTotalSupply = lptoken.totalSupply();
         //transfer correct proportion of reserves to the sender
         uint b1 = token1.balanceOf(address(this));
         uint b2 = token2.balanceOf(address(this));
@@ -105,7 +112,7 @@ contract LiquidityPool{
         token2.transfer(msg.sender, token2Amount);
 
         //burn the LP tokens that the user has redemeed for their share of liquidity pool reserves
-        LPToken.burn(msg.sender, _shareCount);
+        lptoken.burn(msg.sender, _shareCount);
 
         //update reserves after burning shared
         updateReserves(
@@ -118,7 +125,7 @@ contract LiquidityPool{
     function swap(address _token, uint amountIn) external validSwap(_token) returns(uint out ){
         //check what token we are receiving
         bool isToken1 = (_token == address(token1));
-        (ERC20 tokenIn, ERC20 tokenOut, uint inReserve, uint outReserve ) = isToken1? (token1, token2, token1_reserve, token2_reserve): (token2, token1, token2_reserve, token1_reserve);
+        (ERC20 tokenOut, uint inReserve, uint outReserve ) = isToken1? (token2, token1_reserve, token2_reserve): (token1, token2_reserve, token1_reserve);
 
         //calculate amount of token in (with fee of 0.3%)
         uint amountInWithFee = (amountIn * 997) / 1000;

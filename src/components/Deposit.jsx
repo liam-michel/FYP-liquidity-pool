@@ -1,5 +1,6 @@
 import * as React from "react";
 import { useState, useEffect } from "react"; // Import useState
+import { callIncrement } from "@/lib/testContract";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -36,7 +37,7 @@ export default function Deposit() {
           </div>
         </CardContent>
         <CardFooter>
-          <Button>Add Liquidity</Button>
+          <Button onClick={(e) => callIncrement(e)}>Add Liquidity</Button>
         </CardFooter>
       </Card>
     </TabsContent>

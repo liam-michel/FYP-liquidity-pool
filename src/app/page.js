@@ -1,24 +1,20 @@
-"use client";
-import { SwapAndDeposit } from "@/components/MyTabs";
-
-export default function Home() {
+import { PoolTabs } from "@/components/PoolTabs";
+import { readCount } from "@/lib/serverReads";
+export default async function Home() {
+  const count = await readCount();
   return (
     <>
-      <div>
-        {/* Container div with Flexbox styling to center the CardWithForm */}
-        <div
-          style={{
-            background: "black",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            height: "100vh",
-          }}
-        >
-          <div style={{ transform: "scale(1.5)" }}>
-            {/* <SwapForm></SwapForm> */}
-            <SwapAndDeposit></SwapAndDeposit>
-          </div>
+      <div
+        style={{
+          background: "black",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+        }}
+      >
+        <div style={{ transform: "scale(1.5)" }}>
+          <PoolTabs count={count} />
         </div>
       </div>
     </>

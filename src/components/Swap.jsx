@@ -21,6 +21,8 @@ export default function Swap() {
   const [tokenB, setTokenB] = useState(0);
   const [slippage, setSlippage] = useState(1);
 
+  const calculateSwapRate = () => {};
+
   useEffect(() => {
     if (!isSwapped) {
       //then I need to update the value in 2nd box
