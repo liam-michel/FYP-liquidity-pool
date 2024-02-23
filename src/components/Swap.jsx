@@ -1,4 +1,4 @@
-import * as React from "react";
+"use client";
 import { useState, useEffect } from "react"; // Import useState
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -11,17 +11,35 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+
+import { readReserves, calculateSwap } from "@/lib/liquidityPoolFuncs";
+
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { TabsContent } from "@/components/ui/tabs";
 import { Slider } from "@/components/ui/slider";
-export default function Swap() {
+
+export default function Swap({ reserve1, reserve2 }) {
   const [isSwapped, setIsSwapped] = useState(false);
   const [tokenA, setTokenA] = useState(0);
   const [tokenB, setTokenB] = useState(0);
   const [slippage, setSlippage] = useState(1);
+  const [reserves, setReserves] = useState({
+    reserve1: reserve1,
+    reserve2: reserve2,
+  });
 
-  const calculateSwapRate = () => {};
+  const reloadReserves = async () => {
+    const { reserve1, reserve2 } = await readReserves();
+    setReserves({ reserve1: reserve1, reserve2: reserve2 });
+  };
+  useEffect(() => {
+    const interval = setInterval(() => {
+      readReserves();
+    }, 2000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     if (!isSwapped) {
@@ -44,6 +62,8 @@ export default function Swap() {
         <CardHeader>
           <div className="flex justify-between items-center">
             <CardTitle>Swap</CardTitle>
+            <Label>reserve A has {reserves.reserve1}</Label>
+            <Label>reserve B has {reserves.reserve2}</Label>
             <Avatar>
               <AvatarImage
                 src="two-arrows.svg"

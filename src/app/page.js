@@ -1,7 +1,9 @@
 import { PoolTabs } from "@/components/PoolTabs";
-import { readCount } from "@/lib/serverReads";
+import { readReserves } from "@/lib/liquidityPoolFuncs";
 export default async function Home() {
-  const count = await readCount();
+  const { reserve1, reserve2 } = await readReserves();
+  console.log(reserve1);
+  console.log(reserve2);
   return (
     <>
       <div
@@ -14,7 +16,7 @@ export default async function Home() {
         }}
       >
         <div style={{ transform: "scale(1.5)" }}>
-          <PoolTabs count={count} />
+          <PoolTabs reserve1={reserve1} reserve2={reserve2} />
         </div>
       </div>
     </>

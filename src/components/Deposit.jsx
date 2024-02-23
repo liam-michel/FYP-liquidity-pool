@@ -1,6 +1,5 @@
 import * as React from "react";
 import { useState, useEffect } from "react"; // Import useState
-import { callIncrement } from "@/lib/testContract";
 
 import { Button } from "@/components/ui/button";
 import {

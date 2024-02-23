@@ -4,22 +4,31 @@ pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "./LPToken.sol";
+
 // 00000000000000000
 //5000000000000000000
 //10000000000000000000
+
+struct Deposit{
+    uint amount;
+    uint lockPeriodEnd;
+}
+
 contract LiquidityPool{
-    
+    uint public lockPeriod =  1 minutes / 2; 
+    mapping(address => Deposit) deposits;
     address LPTOKEN_ADDRESS;
+    LPToken public lptoken;
     ERC20 public token1;
     ERC20 public token2;
 
-    uint public token1_reserve;
-    uint public token2_reserve;
+    uint public token1_reserve = 10;
+    uint public token2_reserve = 10;
 
     constructor(address _t1, address _t2, address _lptoken){
         token1 = ERC20(_t1);
         token2 = ERC20(_t2);
-        LPTOKEN_ADDRESS = _lptoken;
+        lptoken = LPToken(_lptoken);
 
     }
 
@@ -60,16 +69,68 @@ contract LiquidityPool{
         token2_reserve = _token2_reserve;
     }
 
-    function addLiquidity(uint _amount1, uint _amount2) external returns(uint shares) {
+    function addDeposit(uint shares) private{
+        //grab current deposit for sender if it exists (check if amount is >0)
+        //calculate new timestamp
+        uint withdrawalDate = block.timestamp + lockPeriod;
+        if(deposits[msg.sender].amount>0){
+            uint totalShares = shares + deposits[msg.sender].amount;
+            deposits[msg.sender] = Deposit(totalShares, withdrawalDate);
+        //if the depoosit is new, make a new deposit objedct
+        }else{
+            deposits[msg.sender] = Deposit(shares, withdrawalDate);
+        }
+        //mint the new LP tokens 
+        lptoken.mint(msg.sender, shares);
 
+    }
+
+    function minusDeposit(uint shares) private{
+        deposits[msg.sender].amount = deposits[msg.sender].amount - shares;
+
+        //burn the LP tokens that the user has redemeed for their share of liquidity pool reserves
+        lptoken.burn(msg.sender, shares);
+    }
+
+
+    //function for finding correct ratios in the case that there is a delay between transaction submission and transaction execution (likely to occur in real use)
+    function calculateNewRatios(uint _amount1, uint _amount2, uint slippage) private view returns(uint, uint){
+        //start by calculating a new a2 for the given a1
+        //a2 = (a1 x r2) / r1
+        uint a2 = (_amount1 * token2_reserve) / token1_reserve;
+        // Calculate the minimum acceptable a2 based on slippage tolerance
+        uint minA2 = (_amount2 * (10000 - slippage)) / 10000; // Using 10000 for better precision
+
+        if(a2 >= minA2 && a2 <= _amount2){
+            return (_amount1, a2);
+        }
+
+        uint a1 = (_amount2 * token1_reserve) / token2_reserve;
+        // Calculate the minimum acceptable a1 based on slippage tolerance
+        uint minA1 = (_amount1 * (10000 - slippage)) / 10000; // Using 10000 for better precision
+
+        if(a1 >= minA1 && a1 <= _amount1){
+            return (a1, _amount2);
+        }
+    
+        revert("Slippage tolerance exceeded, adjust liquidity amounts");
+    }
+
+    function addLiquidity(uint _amount1, uint _amount2, uint slippage) external returns(uint shares) {
+        //if 0 of either token is supplied, abort
+        require(_amount1 >0 && _amount2>0);
+        //first check if the passed in # of tokens satisfies the ratio of the reserves (such that price will not change when adding this liquidity)
+        if(token1_reserve > 0 || token2_reserve >0 ){
+            //if passed amounts don't satisfiy, then find new ratios that do
+            if(!(_amount1 * token2_reserve == _amount2 * token1_reserve)){
+                (_amount1, _amount2) = calculateNewRatios(_amount1, _amount2, slippage);
+            }
+        }
+        //if we make it here then we have found a ratio within slippage range such that we can add liquidity
         token1.transferFrom(msg.sender, address(this), _amount1);
         token2.transferFrom(msg.sender, address(this), _amount2);
-        if(token1_reserve > 0 || token2_reserve >0 ){
-            require(_amount1 / _amount2 == token1_reserve * token2_reserve, "Ratio of liquidity added is not correct");
-        }
-        
+
         //call into LP Token smart contract to get total supply
-        LPToken lptoken = LPToken(LPTOKEN_ADDRESS);
         uint current_totalSupply = lptoken.totalSupply();
         //i.e no shares have been minted (this is first bit of liquidity)
         if(current_totalSupply == 0) {
@@ -80,28 +141,27 @@ contract LiquidityPool{
                 (_amount2 * current_totalSupply) / token2_reserve
             );
         }
+
         require(shares > 0, "Minted shares must be greater than zero" );
-        //mint the shares
-        lptoken.mint(msg.sender, shares);
         
         //update reserves after minting 
         updateReserves(
             token1.balanceOf(address(this)),
             token2.balanceOf(address(this))
         );
+
+        //update the current user deposit
+        addDeposit(shares);
         return shares;
 
     }
 
     function removeLiquidity(uint _shareCount) external returns(uint token1Amount, uint token2Amount) {
-        //we want to return amount of liquidity that is proportional to the # of shares this lp provider has
-        require(_shareCount > 0);
-        //enable calling of LPToken smart contract
-        LPToken lptoken = LPToken(LPTOKEN_ADDRESS);
-
-        //fetch senders LPToken balance
         uint senderBalance = lptoken.balanceOf(msg.sender);
-        require(_shareCount <= senderBalance);
+        require(_shareCount <= senderBalance, "Attempting to burn too many LP Tokens");
+        require(deposits[msg.sender].amount> 0 && _shareCount <= deposits[msg.sender].amount && deposits[msg.sender].lockPeriodEnd <= block.timestamp, "Too early to withdraw liquidity");
+        //we want to return amount of liquidity that is proportional to the # of shares this lp provider has
+        //enable calling of LPToken smart contract
         
         uint LPTotalSupply = lptoken.totalSupply();
         //transfer correct proportion of reserves to the sender
@@ -113,14 +173,13 @@ contract LiquidityPool{
         token1.transfer(msg.sender, token1Amount);
         token2.transfer(msg.sender, token2Amount);
 
-        //burn the LP tokens that the user has redemeed for their share of liquidity pool reserves
-        lptoken.burn(msg.sender, _shareCount);
 
         //update reserves after burning shared
         updateReserves(
             token1.balanceOf(address(this)),
             token2.balanceOf(address(this))
         );
+        minusDeposit(_shareCount);
 
     }
 
