@@ -1,6 +1,8 @@
 "use client";
+import BigNumber from "bignumber.js";
 import { useState, useEffect } from "react"; // Import useState
 import useDebounce from "./Debounce";
+import { callSwap } from "@/lib/liquidity-frontend";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,8 +13,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-
-import { readReserves, calculateSwap } from "@/lib/liquidityPoolFuncs";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -30,27 +30,37 @@ export default function Swap({ reserve1, reserve2 }) {
   const debouncedInputB = useDebounce(tokenB, 500);
 
   const calculateSwapAforB = (amountIn) => {
-    const amountWithFee = (amountIn * 997) / 1000;
-    console.log(amountWithFee);
-    const amountOut = (reserve2 * amountWithFee) / (reserve1 + amountWithFee);
-    return amountOut;
+    const res1 = new BigNumber(reserve1);
+    const res2 = new BigNumber(reserve2);
+    const withFees = new BigNumber(amountIn).times(1e18).times(0.997);
+    const amountOut = res2
+      .times(withFees)
+      .div(res1.plus(withFees))
+      .integerValue(BigNumber.ROUND_DOWN)
+      .div(1e18);
+    console.log(amountOut.toString());
+    return amountOut.toString();
   };
 
   const calculateSwapBforA = (amountIn) => {
-    const amountWithFee = (amountIn * 997) / 1000;
-    const amountOut = (reserve1 * amountWithFee) / (reserve2 + amountWithFee);
-    return amountOut;
+    const res1 = new BigNumber(reserve1);
+    const res2 = new BigNumber(reserve2);
+    const withFees = new BigNumber(amountIn).times(1e18).times(0.997);
+    const amountOut = res1
+      .times(withFees)
+      .div(res2.plus(withFees))
+      .integerValue(BigNumber.ROUND_DOWN)
+      .div(1e18);
+    console.log(amountOut.toString());
+    return amountOut.toString();
   };
 
   useEffect(() => {
     // Convert based on which input was last edited
     if (lastEdited === "A") {
-      console.log("Editing A");
-
       const result = calculateSwapAforB(debouncedInputA);
       setTokenB(result);
     } else if (lastEdited === "B") {
-      console.log("Editing B");
       const result = calculateSwapBforA(debouncedInputB);
       setTokenA(result);
     }
@@ -92,7 +102,7 @@ export default function Swap({ reserve1, reserve2 }) {
           <div className="space-y-1">
             <Label>{isSwapped ? "Token B Count" : "Token A Count"}</Label>
             <Input
-              type="text"
+              type="number"
               placeholder="Amount"
               value={!isSwapped ? tokenA : tokenB}
               onChange={(e) => {
@@ -107,9 +117,6 @@ export default function Swap({ reserve1, reserve2 }) {
                     setTokenB(value);
                     setLastEdited("B");
                   }
-                } else {
-                  setTokenA("");
-                  setTokenB("");
                 }
               }}
             />
@@ -117,7 +124,7 @@ export default function Swap({ reserve1, reserve2 }) {
           <div className="space-y-1">
             <Label>{isSwapped ? "Token A Count" : "Token B Count"}</Label>
             <Input
-              type="text"
+              type="number"
               placeholder="Amount"
               value={!isSwapped ? tokenB : tokenA}
               onChange={(e) => {
@@ -140,23 +147,45 @@ export default function Swap({ reserve1, reserve2 }) {
               }}
             />
           </div>
-          <div className="flex items-center space-x-2">
-            <Label>Max acceptable Slippage (%)</Label>
-            <Slider
-              value={[slippage]}
-              max={10}
-              step={0.05}
-              onValueChange={(e) => handleSlippageChange(e)}
-            />
-            <Input
-              type="number"
-              value={slippage}
-              onChange={(e) => handleSlippageChange(e.target.value)}
-            ></Input>
+          <div className="flex flex-col space-y-2">
+            <div>
+              <Label>Max acceptable Slippage (%)</Label>
+            </div>
+            <div className="w-full">
+              <Slider
+                value={[slippage]}
+                max={10}
+                step={0.05}
+                onValueChange={(e) => handleSlippageChange(e)}
+              />
+            </div>
+            <div>
+              <Input
+                type="number"
+                className="w-full" // Ensure the input box also spans the full width if desired
+                value={slippage}
+                onChange={(e) => handleSlippageChange(e.target.value)}
+              />
+            </div>
           </div>
         </CardContent>
         <CardFooter className="flex justify-center items-center">
-          <Button onClick={(e) => sendSwap()}>Swap</Button>
+          <Button
+            onClick={async (e) => {
+              if (tokenA != "" && tokenB != "") {
+                if (!isSwapped) {
+                  //initiate swap token A => token B
+                  await callSwap(tokenA, tokenB, slippage, false);
+                } else {
+                  await callSwap(tokenA, tokenB, slippage, true);
+                }
+              } else {
+                console.log("No values");
+              }
+            }}
+          >
+            Swap
+          </Button>
         </CardFooter>
       </Card>
     </TabsContent>

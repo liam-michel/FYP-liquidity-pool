@@ -8,7 +8,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Swap from "@/components/Swap.jsx";
 import Deposit from "@/components/Deposit";
 import MintTokens from "@/components/MintTokens";
-import { readReserves } from "@/lib/liquidityPoolFuncs";
+import { readReserves } from "@/lib/serverFunctions";
 import "../styles/styles.css";
 import { Label } from "@/components/ui/label";
 export function PoolTabs({ reserve1, reserve2 }) {
@@ -25,7 +25,7 @@ export function PoolTabs({ reserve1, reserve2 }) {
   useEffect(() => {
     const interval = setInterval(() => {
       reloadReserves();
-    }, 2000);
+    }, 10000);
 
     return () => clearInterval(interval);
   }, []);
@@ -34,11 +34,11 @@ export function PoolTabs({ reserve1, reserve2 }) {
     <>
       <div>
         <Label style={{ color: "green" }}>
-          Reserve A has balance: {reserves.reserve1}
+          Reserve A has balance: {Number(reserves.reserve1 / BigInt(1e18))}
         </Label>
         <div></div>
         <Label style={{ color: "green" }}>
-          Reserve B has balance: {reserves.reserve2}
+          Reserve B has balance: {Number(reserves.reserve2 / BigInt(1e18))}
         </Label>
       </div>
       <Button
@@ -58,7 +58,7 @@ export function PoolTabs({ reserve1, reserve2 }) {
         </TabsList>
 
         <Swap reserve1={reserve1} reserve2={reserve2}></Swap>
-        <Deposit></Deposit>
+        <Deposit reserve1={reserve1} reserve2={reserve2}></Deposit>
         <MintTokens></MintTokens>
       </Tabs>
     </>
