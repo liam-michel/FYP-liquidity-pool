@@ -11,9 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-
-import { readReserves, calculateSwap } from "@/lib/liquidityPoolFuncs";
-
+import BigNumber from "bignumber.js";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { TabsContent } from "@/components/ui/tabs";
@@ -30,28 +28,40 @@ export default function Swap({ reserve1, reserve2 }) {
   const debouncedInputB = useDebounce(tokenB, 500);
 
   const calculateSwapAforB = (amountIn) => {
-    const amountWithFee = (amountIn * 997) / 1000;
-    console.log(amountWithFee);
-    const amountOut = (reserve2 * amountWithFee) / (reserve1 + amountWithFee);
+    const res1 = new BigNumber(reserve1);
+    const res2 = new BigNumber(reserve2);
+    console.log(res1.toString());
+    console.log(res2.toString());
+    const withFees = new BigNumber(amountIn).times(1e18).times(0.997);
+    console.log("Adjusted amount in: ", withFees.toString());
+    const amountOut = res2
+      .times(withFees)
+      .div(res1.plus(withFees))
+      .integerValue(BigNumber.ROUND_DOWN)
+      .div(1e18);
     return amountOut;
   };
 
   const calculateSwapBforA = (amountIn) => {
-    const amountWithFee = (amountIn * 997) / 1000;
-    const amountOut = (reserve1 * amountWithFee) / (reserve2 + amountWithFee);
+    const res1 = new BigNumber(reserve1);
+    const res2 = new BigNumber(reserve2);
+    const withFees = new BigNumber(amountIn).times(1e18).times(0.997);
+    console.log("Adjusted amount in: ", withFees.toString());
+    const amountOut = res1
+      .times(withFees)
+      .div(res2.plus(withFees))
+      .integerValue(BigNumber.ROUND_DOWN)
+      .div(1e18);
     return amountOut;
   };
 
   useEffect(() => {
     // Convert based on which input was last edited
     if (lastEdited === "A") {
-      console.log("Editing A");
-
-      const result = calculateSwapAforB(debouncedInputA);
+      const result = calculateSwapAforB(debouncedInputA, reserve1, reserve2);
       setTokenB(result);
     } else if (lastEdited === "B") {
-      console.log("Editing B");
-      const result = calculateSwapBforA(debouncedInputB);
+      const result = calculateSwapBforA(debouncedInputB, reserve1, reserve2);
       setTokenA(result);
     }
   }, [
@@ -124,7 +134,6 @@ export default function Swap({ reserve1, reserve2 }) {
                 const value = e.target.value;
                 // Allow numbers only, optionally uncomment the next line to allow decimals
                 const isNumeric = /^\d+(\.\d+)?$/.test(value);
-                console.log(isNumeric);
                 if (isNumeric || value === "") {
                   if (!isSwapped) {
                     setTokenB(value);
