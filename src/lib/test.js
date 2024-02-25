@@ -1,28 +1,33 @@
 import BigNumber from "bignumber.js";
 
-const res1 = new BigNumber(1000).times(1e18);
-const res2 = new BigNumber(500).times(1e18);
+const reserve1 = BigNumber(50).times(1e18);
+const reserve2 = BigNumber(25).times(1e18);
 
-//dy = ydx / x + dx
-
-const swapXforY = (amountIn) => {
+const calculateSwapAforB = (amountIn) => {
+  const res1 = new BigNumber(reserve1);
+  const res2 = new BigNumber(reserve2);
   const withFees = new BigNumber(amountIn).times(1e18).times(0.997);
-  console.log("Adjusted amount in: ", withFees.toString());
   const amountOut = res2
     .times(withFees)
     .div(res1.plus(withFees))
-    .integerValue(BigNumber.ROUND_DOWN);
-  console.log(amountOut);
+    .integerValue(BigNumber.ROUND_DOWN)
+    .div(1e18);
+  console.log(amountOut.toString());
+  return amountOut.toString();
 };
 
-const swapYforX = (amountIn) => {
+const calculateSwapBforA = (amountIn) => {
+  const res1 = new BigNumber(reserve1);
+  const res2 = new BigNumber(reserve2);
   const withFees = new BigNumber(amountIn).times(1e18).times(0.997);
-  console.log("Adjusted amount in: ", withFees.toString());
   const amountOut = res1
     .times(withFees)
     .div(res2.plus(withFees))
-    .integerValue(BigNumber.ROUND_DOWN);
-  console.log(amountOut);
+    .integerValue(BigNumber.ROUND_DOWN)
+    .div(1e18);
+  console.log(amountOut.toString());
+  return amountOut.toString();
 };
 
-swapXforY(100);
+console.log(calculateSwapAforB(1));
+console.log(calculateSwapAforB(1) * 1e18);

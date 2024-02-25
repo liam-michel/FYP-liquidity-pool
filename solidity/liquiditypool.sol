@@ -5,7 +5,7 @@ pragma solidity ^0.8.20;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "./LPToken.sol";
 
-// 00000000000000000
+// 000000000000000000
 //5000000000000000000
 //10000000000000000000
 
@@ -22,8 +22,8 @@ contract LiquidityPool{
     ERC20 public token1;
     ERC20 public token2;
 
-    uint public token1_reserve = 10;
-    uint public token2_reserve = 10;
+    uint public token1_reserve = 0;
+    uint public token2_reserve = 0;
 
     constructor(address _t1, address _t2, address _lptoken){
         token1 = ERC20(_t1);
@@ -94,7 +94,7 @@ contract LiquidityPool{
 
 
     //function for finding correct ratios in the case that there is a delay between transaction submission and transaction execution (likely to occur in real use)
-    function calculateNewRatios(uint _amount1, uint _amount2, uint slippage) private view returns(uint, uint){
+    function calculateNewLiquidityRatios(uint _amount1, uint _amount2, uint slippage) private view returns(uint, uint){
         //start by calculating a new a2 for the given a1
         //a2 = (a1 x r2) / r1
         uint a2 = (_amount1 * token2_reserve) / token1_reserve;
@@ -123,7 +123,7 @@ contract LiquidityPool{
         if(token1_reserve > 0 || token2_reserve >0 ){
             //if passed amounts don't satisfiy, then find new ratios that do
             if(!(_amount1 * token2_reserve == _amount2 * token1_reserve)){
-                (_amount1, _amount2) = calculateNewRatios(_amount1, _amount2, slippage);
+                (_amount1, _amount2) = calculateNewLiquidityRatios(_amount1, _amount2, slippage);
             }
         }
         //if we make it here then we have found a ratio within slippage range such that we can add liquidity
@@ -183,21 +183,43 @@ contract LiquidityPool{
 
     }
 
-    function swap(address _token, uint countIn) external validSwap(_token) returns(uint amountOut ){
-        //check what token we are receiving
-        bool isToken1 = (_token == address(token1));
-        (ERC20 tokenIn, ERC20 tokenOut, uint inReserve, uint outReserve ) = isToken1? (token1, token2, token1_reserve, token2_reserve): (token2, token1, token2_reserve, token1_reserve);
-
+    function calculateSwap(uint countIn, uint inReserve, uint outReserve) internal pure returns(uint amountOut){
         //calculate amount of token in (with fee of 0.3%)
         uint countInWithFee = (countIn * 997) / 1000;
         //dy = ydx / x + dx 
         amountOut =  (outReserve * countInWithFee) / (inReserve + countInWithFee );
+    }
 
+    //function to call if you want slippage protection on the swap (i.e you have a minimum amount you want to get from the swap)
+    function slippage_swap(address _token, uint countIn, uint countOut, uint slippage) external validSwap(_token) returns(uint amountOut){
+        bool isToken1 = (_token == address(token1));
+        (ERC20 tokenIn, ERC20 tokenOut, uint inReserve, uint outReserve ) = isToken1? (token1, token2, token1_reserve, token2_reserve): (token2, token1, token2_reserve, token1_reserve);
+        amountOut = calculateSwap(countIn, inReserve, outReserve);
+        
+        //check if the calculated amount output is within the slippage tolerances of the user
+        uint slippage_minimum = countOut * (100-slippage) / 100;
+        //we require that the on-chain calculation is within {slippage} percentage of the value that was calculated on the client, otherwise we revert the transaction
+        require(amountOut >= slippage_minimum, "On-Chain exchange rate is not within slippage bounds set by user");
+        tokenIn.transferFrom(msg.sender, address(this), countIn);
+        //transfer the 'amountOut' amount of tokens to sender
+        tokenOut.transfer(msg.sender, amountOut);
+        
+        //update the reserves to reflect new balances;
+        updateReserves(token1.balanceOf(address(this)), token2.balanceOf(address(this)));
+
+    }
+
+
+
+    function swap(address _token, uint countIn) external validSwap(_token) returns(uint amountOut ){
+        //check what token we are receiving
+        bool isToken1 = (_token == address(token1));
+        (ERC20 tokenIn, ERC20 tokenOut, uint inReserve, uint outReserve ) = isToken1? (token1, token2, token1_reserve, token2_reserve): (token2, token1, token2_reserve, token1_reserve);
+        amountOut = calculateSwap(countIn, inReserve, outReserve);
         //transfer the 'inToken' in
         tokenIn.transferFrom(msg.sender, address(this), countIn);
         //transfer the 'amountOut' amount of tokens to sender
         tokenOut.transfer(msg.sender, amountOut);
-
         //update the reserves to reflect new balances;
         updateReserves(token1.balanceOf(address(this)), token2.balanceOf(address(this)));
 

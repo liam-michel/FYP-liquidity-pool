@@ -8,7 +8,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Swap from "@/components/Swap.jsx";
 import Deposit from "@/components/Deposit";
 import MintTokens from "@/components/MintTokens";
-import { readReserves } from "@/lib/liquidityPoolFuncs";
+import { readReserves } from "@/lib/serverFunctions";
 import "../styles/styles.css";
 import { Label } from "@/components/ui/label";
 export function PoolTabs({ reserve1, reserve2 }) {
@@ -58,7 +58,7 @@ export function PoolTabs({ reserve1, reserve2 }) {
         </TabsList>
 
         <Swap reserve1={reserve1} reserve2={reserve2}></Swap>
-        <Deposit></Deposit>
+        <Deposit reserve1={reserve1} reserve2={reserve2}></Deposit>
         <MintTokens></MintTokens>
       </Tabs>
     </>
