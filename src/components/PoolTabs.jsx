@@ -33,11 +33,11 @@ export function PoolTabs({ reserve1, reserve2 }) {
   return (
     <>
       <div>
-        <Label style={{ color: "green" }}>
+        <Label style={{ color: "cyan" }}>
           Reserve A has balance: {Number(reserves.reserve1 / BigInt(1e18))}
         </Label>
         <div></div>
-        <Label style={{ color: "green" }}>
+        <Label style={{ color: "cyan" }}>
           Reserve B has balance: {Number(reserves.reserve2 / BigInt(1e18))}
         </Label>
       </div>

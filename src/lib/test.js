@@ -1,5 +1,5 @@
 import BigNumber from "bignumber.js";
-
+import Web3 from "web3";
 const reserve1 = BigNumber(50).times(1e18);
 const reserve2 = BigNumber(25).times(1e18);
 
@@ -12,7 +12,7 @@ const calculateSwapAforB = (amountIn) => {
     .div(res1.plus(withFees))
     .integerValue(BigNumber.ROUND_DOWN)
     .div(1e18);
-  console.log(amountOut.toString());
+  //console.log(amountOut.toString());
   return amountOut.toString();
 };
 
@@ -25,9 +25,23 @@ const calculateSwapBforA = (amountIn) => {
     .div(res2.plus(withFees))
     .integerValue(BigNumber.ROUND_DOWN)
     .div(1e18);
-  console.log(amountOut.toString());
+  //console.log(amountOut.toString());
   return amountOut.toString();
 };
 
-console.log(calculateSwapAforB(1));
-console.log(calculateSwapAforB(1) * 1e18);
+const x = calculateSwapAforB(1);
+
+const minimumGood = new BigNumber(x)
+  .times(100 - 5.62)
+  .div(100)
+  .decimalPlaces(18, BigNumber.ROUND_DOWN);
+
+const minimumbad = new BigNumber(x).times(100 - 5).div(100);
+//console.log(minimumGood);
+
+console.log(minimumbad);
+console.log(minimumGood);
+
+const unround = 5.657;
+const rounded = Math.floor(unround * 100) / 100;
+console.log(rounded);
