@@ -1,8 +1,7 @@
 "use client";
-import BigNumber from "bignumber.js";
 import * as React from "react";
-import { useState, useEffect } from "react"; // Import useState
-import useDebounce, { useDebounceFunc } from "./Debounce";
+import { useState } from "react"; // Import useState
+import { useDebounceFunc } from "./Debounce";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -16,12 +15,25 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { TabsContent } from "@/components/ui/tabs";
 import { Slider } from "@/components/ui/slider";
-import { calculateAtoBLiquidity, calculateBtoALiquidity } from "@/lib/serverFunctions";
+import {
+  calculateAtoBLiquidity,
+  calculateBtoALiquidity,
+} from "@/lib/serverFunctions";
+import { addLiquidity } from "@/lib/liquidity-frontend";
 
-export default function Deposit({ reserve1, reserve2 }) {
+export default function AddLiquidity({ reserve1, reserve2 }) {
   const [slippage, setSlippage] = useState(1);
-  const [tokenA, setTokenA] = useState(0);
-  const [tokenB, setTokenB] = useState(0);
+  const [tokenA, setTokenA] = useState("");
+  const [tokenB, setTokenB] = useState("");
+
+  const isNumeric = (value) => {
+    return /^\d+(\.\d+)?$/.test(value);
+  };
+
+  const wipeInputs = () => {
+    setTokenA("");
+    setTokenB("");
+  };
 
   const handleSlippageChange = (value) => {
     if (!isNaN(value) && value >= 0 && value <= 10) {
@@ -29,31 +41,31 @@ export default function Deposit({ reserve1, reserve2 }) {
     }
   };
 
-  const handleSwapAforB = async (value) => {
-    console.log(value)
-    if (value[0]) {
-      let res = await calculateAtoBLiquidity(value, reserve1, reserve2)
-      setTokenB(res)
+  const handleAtoB = async (value) => {
+    if (isNumeric(value[0])) {
+      console.log("calculating amount of token B");
+      let res = await calculateAtoBLiquidity(value, reserve1, reserve2);
+      setTokenB(res);
     }
-  }
+  };
 
-  const handleSwapBforA = async (value) => {
-    console.log(value)
-    if (value[0]) {
-      let res = await calculateBtoALiquidity(value, reserve1, reserve2)
-      setTokenA(res)
+  const handleBtoA = async (value) => {
+    if (isNumeric(value[0])) {
+      console.log("calculating amount of token A");
+      let res = await calculateBtoALiquidity(value, reserve1, reserve2);
+      setTokenA(res);
     }
-  }
+  };
   const debouncedAtoB = useDebounceFunc(handleAtoB, 500);
   const debouncedBtoA = useDebounceFunc(handleBtoA, 500);
-
+  const debouncedWipeInputs = useDebounceFunc(wipeInputs, 500);
 
   return (
-    <TabsContent value="deposit">
-      <Card className="tab-card">
+    <TabsContent value="addliquidity">
+      <Card className="tab-card" style={{ background: "LightSlateGray" }}>
         <CardHeader>
           <CardTitle>Add Liquidity</CardTitle>
-          <CardDescription>
+          <CardDescription className="text-black">
             Here you can deposit equal ratios of Token A and Token B in return
             for some LP tokens
           </CardDescription>
@@ -63,16 +75,16 @@ export default function Deposit({ reserve1, reserve2 }) {
             <Label htmlFor="current">Count of Token A to deposit</Label>
             <Input
               id="current"
-              type="number"
               placeholder="Amount"
               value={tokenA}
               onChange={(e) => {
                 const value = e.target.value;
-                console.log(value);
-                const isNumeric = /^\d+(\.\d+)?$/.test(value);
-                if (isNumeric || value === "") {
+                if (isNumeric(value)) {
+                  console.log("here");
                   setTokenA(value);
-                  setLastEdited("A");
+                  debouncedAtoB(value);
+                } else {
+                  debouncedWipeInputs();
                 }
               }}
             />
@@ -81,19 +93,15 @@ export default function Deposit({ reserve1, reserve2 }) {
             <Label htmlFor="new">Count of Token B to deposit</Label>
             <Input
               id="new"
-              type="number"
               placeholder="Amount"
               value={tokenB}
               onChange={(e) => {
                 const value = e.target.value;
-                console.log(value);
-                const isNumeric = /^\d+(\.\d+)?$/.test(value);
-                if (isNumeric || value === "") {
+                if (isNumeric(value)) {
                   setTokenB(value);
-                  setLastEdited("B");
+                  debouncedBtoA(value);
                 } else {
-                  setTokenA("");
-                  setTokenB("");
+                  debouncedWipeInputs();
                 }
               }}
             />
@@ -121,7 +129,15 @@ export default function Deposit({ reserve1, reserve2 }) {
           </div>
         </CardContent>
         <CardFooter>
-          <Button onClick={(e) => callIncrement(e)}>Add Liquidity</Button>
+          <Button
+            onClick={async (e) => {
+              if (isNumeric(tokenA) && isNumeric(tokenB)) {
+                await addLiquidity(tokenA, tokenB, slippage);
+              }
+            }}
+          >
+            Add Liquidity
+          </Button>
         </CardFooter>
       </Card>
     </TabsContent>

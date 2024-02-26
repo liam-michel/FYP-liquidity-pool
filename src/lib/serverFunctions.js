@@ -23,7 +23,7 @@ export async function readReserves() {
 }
 
 export const calculateSwapAforB = async (amountIn, reserve1, reserve2) => {
-  console.log('hi');
+  console.log("hi");
   const res1 = new BigNumber(reserve1);
   const res2 = new BigNumber(reserve2);
   const withFees = new BigNumber(amountIn).times(1e18).times(0.997);
@@ -49,8 +49,7 @@ export const calculateSwapBforA = async (amountIn, reserve1, reserve2) => {
   return amountOut.toString();
 };
 
-
-export const calculateAtoBLiquidity = async(tokenAIn) => {
+export const calculateAtoBLiquidity = async (tokenAIn, reserve1, reserve2) => {
   const tokenIn = new BigNumber(tokenAIn).times(1e18);
   const res1 = new BigNumber(reserve1);
   const res2 = new BigNumber(reserve2);
@@ -63,8 +62,7 @@ export const calculateAtoBLiquidity = async(tokenAIn) => {
   return amountOut.toString();
 };
 
-
-export const calculateBtoALiquidity = async(tokenBIn) => {
+export const calculateBtoALiquidity = async (tokenBIn, reserve1, reserve2) => {
   const tokenIn = new BigNumber(tokenBIn).times(1e18);
   const res1 = new BigNumber(reserve1);
   const res2 = new BigNumber(reserve2);

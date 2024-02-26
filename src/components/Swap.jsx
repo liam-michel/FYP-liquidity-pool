@@ -1,6 +1,5 @@
 "use client";
-import BigNumber from "bignumber.js";
-import { useState} from "react"; // Import useState
+import { useState } from "react"; // Import useState
 import { useDebounceFunc } from "./Debounce";
 import { callSwap } from "@/lib/liquidity-frontend";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -17,90 +16,43 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { TabsContent } from "@/components/ui/tabs";
 import { Slider } from "@/components/ui/slider";
-import _debounce from "lodash.debounce"
+import _debounce from "lodash.debounce";
 import { calculateSwapAforB, calculateSwapBforA } from "@/lib/serverFunctions";
-
+import { callIncrement } from "@/lib/testContract";
 export default function Swap({ reserve1, reserve2 }) {
   const [isSwapped, setIsSwapped] = useState(false);
-  const [tokenA, setTokenA] = useState(0);
-  const [tokenB, setTokenB] = useState(0);
-  const [slippage, setSlippage] = useState(1);
-  const [lastEdited, setLastEdited] = useState(null); // Track the last edited field
+  const [tokenA, setTokenA] = useState("");
+  const [tokenB, setTokenB] = useState("");
+  const [slippage, setSlippage] = useState(0.1);
 
-  // const calculateSwapAforB = (amountIn) => {
-  //   console.log("received value ", amountIn);
-  //   const res1 = new BigNumber(reserve1);
-  //   const res2 = new BigNumber(reserve2);
-  //   const withFees = new BigNumber(amountIn).times(1e18).times(0.997);
-  //   const amountOut = res2
-  //     .times(withFees)
-  //     .div(res1.plus(withFees))
-  //     .integerValue(BigNumber.ROUND_DOWN)
-  //     .div(1e18);
-  //   console.log(amountOut.toString());
-  //   return amountOut.toString();
-  // };
+  const isNumeric = (value) => {
+    return /^\d+(\.\d+)?$/.test(value);
+  };
 
-  // const calculateSwapBforA = (amountIn) => {
-  //   const res1 = new BigNumber(reserve1);
-  //   const res2 = new BigNumber(reserve2);
-  //   const withFees = new BigNumber(amountIn).times(1e18).times(0.997);
-  //   const amountOut = res1
-  //     .times(withFees)
-  //     .div(res2.plus(withFees))
-  //     .integerValue(BigNumber.ROUND_DOWN)
-  //     .div(1e18);
-  //   console.log(amountOut.toString());
-  //   return amountOut.toString();
-  // };
+  const wipeInputs = () => {
+    setTokenA("");
+    setTokenB("");
+  };
 
   const handleSwapAforB = async (value) => {
-    console.log(value)
+    console.log(value);
     if (value[0]) {
-      let res = await calculateSwapAforB(value, reserve1, reserve2)
-      setTokenB(res)
+      let res = await calculateSwapAforB(value, reserve1, reserve2);
+      setTokenB(res);
     }
-  }
+  };
 
   const handleSwapBforA = async (value) => {
-    console.log(value)
+    console.log(value);
     if (value[0]) {
-      let res = await calculateSwapBforA(value, reserve1, reserve2)
-      setTokenA(res)
+      let res = await calculateSwapBforA(value, reserve1, reserve2);
+      setTokenA(res);
     }
-  }
+  };
 
-  const debouncedCalcSwapAforB = useDebounceFunc(handleSwapAforB, 500)
-  const debouncedCalcSwapBforA = useDebounceFunc(handleSwapBforA, 500)
-
-  // const debouncedCalcSwapAforB = useMemo(() => {
-  //   return _debounce(calculateSwapAforB, 500)
-  // }, [calculateSwapAforB])
-
-  // const debouncedCalcSwapBforA = useMemo(() => {
-  //   return _debounce(calculateSwapBforA, 500)
-  // }, [calculateSwapBforA])
-
-
-  
-
-  // useEffect(() => {
-  //   // Convert based on which input was last edited
-  //   if (lastEdited === "A") {
-  //     const result = calculateSwapAforB(debouncedInputA);
-  //     setTokenB(result);
-  //   } else if (lastEdited === "B") {
-  //     const result = calculateSwapBforA(debouncedInputB);
-  //     setTokenA(result);
-  //   }
-  // }, [
-  //   debouncedInputA,
-  //   debouncedInputB,
-  //   lastEdited,
-  //   isSwapped,
-  //   reserve1,
-  //   reserve2,
-  // ]);
+  const debouncedCalcSwapAforB = useDebounceFunc(handleSwapAforB, 500);
+  const debouncedCalcSwapBforA = useDebounceFunc(handleSwapBforA, 500);
+  const debouncedWipeInputs = useDebounceFunc(wipeInputs, 500);
 
   const handleSlippageChange = (value) => {
     if (!isNaN(value) && value >= 0 && value <= 10) {
@@ -110,7 +62,7 @@ export default function Swap({ reserve1, reserve2 }) {
 
   return (
     <TabsContent value="swap">
-      <Card className="tab-card" style={{ background: "turquoise" }}>
+      <Card className="tab-card" style={{ background: "LightSlateGray" }}>
         <CardHeader>
           <div className="flex justify-between items-center">
             <CardTitle>Swap</CardTitle>
@@ -123,59 +75,49 @@ export default function Swap({ reserve1, reserve2 }) {
               <AvatarFallback>CN</AvatarFallback>
             </Avatar>
           </div>
-          <CardDescription>
+          <CardDescription className="text-black">
             Enter amount of Token A / B You would like to swap
+          </CardDescription>
+          <CardDescription className="text-black">
+            Toggle swap direction with the button in the top right
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-2">
           <div className="space-y-1">
             <Label>{isSwapped ? "Token B Count" : "Token A Count"}</Label>
             <Input
-              // pattern="^\d+(\.\d+)?$"
               placeholder="Amount"
               value={!isSwapped ? tokenA : tokenB}
               onChange={(e) => {
                 const value = e.target.value;
-                console.log("value is ",value);
-                // Allow numbers only, optionally uncomment the next line to allow decimals
-                // const isNumeric = /^\d+(\.\d+)?$/.test(value);
-                // if (isNumeric) {
-                  if (!isSwapped) {
-                    setTokenA(value);
-                    setLastEdited("A");
-                    debouncedCalcSwapAforB(value)
-                  } else {
-                    setTokenB(value);
-                    setLastEdited("B");
-                    debouncedCalcSwapBforA(value)
-                  }
-                
+                if (!isSwapped && isNumeric(value)) {
+                  setTokenA(value);
+                  debouncedCalcSwapAforB(value);
+                } else if (isNumeric(value)) {
+                  setTokenB(value);
+                  debouncedCalcSwapBforA(value);
+                } else {
+                  debouncedWipeInputs();
+                }
               }}
             />
           </div>
           <div className="space-y-1">
             <Label>{isSwapped ? "Token A Count" : "Token B Count"}</Label>
             <Input
-              // pattern="^\d+(\.\d+)?$"
               placeholder="Amount"
               value={!isSwapped ? tokenB : tokenA}
               onChange={(e) => {
                 const value = e.target.value;
-                // Allow numbers only, optionally uncomment the next line to allow decimals
-                // const isNumeric = /^\d+(\.\d+)?$/.test(value);
-                // if (isNumeric) {
-                  if (!isSwapped) {
-                    setTokenB(value);
-                    setLastEdited("B");
-                    debouncedCalcSwapBforA(value)
-
-                  } else {
-                    setTokenA(value);
-                    setLastEdited("A");
-                    debouncedCalcSwapAforB(value)
-
-                  }
-                
+                if (!isSwapped && isNumeric(value)) {
+                  setTokenB(value);
+                  debouncedCalcSwapBforA(value);
+                } else if (isNumeric(value)) {
+                  setTokenA(value);
+                  debouncedCalcSwapAforB(value);
+                } else {
+                  debouncedWipeInputs();
+                }
               }}
             />
           </div>
@@ -204,10 +146,13 @@ export default function Swap({ reserve1, reserve2 }) {
         <CardFooter className="flex justify-center items-center">
           <Button
             onClick={async (e) => {
-              if (tokenA != "" && tokenB != "") {
+              setTokenA(1);
+              setTokenB(2);
+              if (isNumeric(tokenA) && isNumeric(tokenB)) {
                 if (!isSwapped) {
                   //initiate swap token A => token B
                   await callSwap(tokenA, tokenB, slippage, false);
+                  //await callIncrement();
                 } else {
                   await callSwap(tokenA, tokenB, slippage, true);
                 }
