@@ -62,6 +62,7 @@ export default function MintTokens() {
               <Button
                 onClick={async (e) => {
                   if (isNumeric(tokenA)) {
+                    console.log(tokenA);
                     await mintTokenA(tokenA);
                   }
                 }}

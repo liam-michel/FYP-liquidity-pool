@@ -141,7 +141,7 @@ export const addLiquidity = async (tokenA, tokenB, slippage) => {
 
 export const removeLiquidity = async (amountIn) => {
   try {
-    const converted_tokens = web3.utils.toWei(amountIn);
+    const converted_tokens = Web3.utils.toWei(amountIn, "ether");
     const { web3, account, contract } = await initialSetup(
       LiquidityPoolABI,
       LPAddress
@@ -175,13 +175,16 @@ export const removeLiquidity = async (amountIn) => {
 
 export const mintTokenA = async (amountIn) => {
   try {
+    const convertedAmount = Web3.utils.toWei(amountIn, "ether");
     const { web3, account, contract } = await initialSetup(
       swapTokenABI,
       t1Address
     );
-    const transaction = contract.methods.mint(web3.utils.toWei(amountIn));
+    console.log("here");
+    const transaction = contract.methods.mint(convertedAmount);
+    console.log("here");
     await transaction
-      .send({ from: account, gas: gas, gasPrice: gasPrice })
+      .send({ from: account })
       .on("receipt", (receipt) => {
         console.log("Transaction was successful: ", receipt);
         return true;
@@ -206,13 +209,14 @@ export const mintTokenA = async (amountIn) => {
 
 export const mintTokenB = async (amountIn) => {
   try {
+    const convertedAmount = Web3.utils.toWei(amountIn, "ether");
     const { web3, account, contract } = await initialSetup(
       swapTokenABI,
       t2Address
     );
-    const transaction = contract.methods.mint(web3.utils.toWei(amountIn));
+    const transaction = contract.methods.mint(convertedAmount);
     await transaction
-      .send({ from: account, gas: gas, gasPrice: gasPrice })
+      .send({ from: account })
       .on("receipt", (receipt) => {
         console.log("Transaction was successful: ", receipt);
         return true;

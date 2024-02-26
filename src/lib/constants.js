@@ -1,5 +1,5 @@
-export const t1Address = "0x8689cBee76C90321A9a9ca5D4764E0e4b382d24B";
-export const t2Address = "0x33D7CB191447Cd41D67963d06e1404eF72668Fac";
+export const t1Address = "0x35C372f0947b9E831A3fB90F7892634471d81953";
+export const t2Address = "0x1ed5304eB5952C18E1C68b77D611d179D08F2B09";
 export const lPTokenAddress = "0x4c81758c8D674B7A327d017ec74D509f558088FA";
 export const LPAddress = "0xF4624C58CAa13a9378ED2Dc89A0969a62d010fE2";
 export const rpc = "https://rpc.sepolia.org";
@@ -7,17 +7,12 @@ export const rpc = "https://rpc.sepolia.org";
 export const tokens = [
   {
     address: t1Address,
-    symbol: "hello",
+    symbol: "T1",
     decimals: 18,
   },
   {
     address: t2Address,
-    symbol: "NOPE",
-    decimals: 18,
-  },
-  {
-    address: lPTokenAddress,
-    symbol: "HELLO",
+    symbol: "T2",
     decimals: 18,
   },
 ];
