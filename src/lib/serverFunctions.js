@@ -48,3 +48,31 @@ export const calculateSwapBforA = async (amountIn, reserve1, reserve2) => {
   console.log(amountOut.toString());
   return amountOut.toString();
 };
+
+
+export const calculateAtoBLiquidity = async(tokenAIn) => {
+  const tokenIn = new BigNumber(tokenAIn).times(1e18);
+  const res1 = new BigNumber(reserve1);
+  const res2 = new BigNumber(reserve2);
+  const amountOut = tokenIn
+    .times(res2)
+    .div(res1)
+    .integerValue(BigNumber.ROUND_DOWN)
+    .div(1e18);
+
+  return amountOut.toString();
+};
+
+
+export const calculateBtoALiquidity = async(tokenBIn) => {
+  const tokenIn = new BigNumber(tokenBIn).times(1e18);
+  const res1 = new BigNumber(reserve1);
+  const res2 = new BigNumber(reserve2);
+  const amountOut = tokenIn
+    .times(res1)
+    .div(res2)
+    .integerValue(BigNumber.ROUND_DOWN)
+    .div(1e18);
+
+  return amountOut.toString();
+};
