@@ -21,7 +21,12 @@ import {
 } from "@/lib/serverFunctions";
 import { addLiquidity } from "@/lib/liquidity-frontend";
 
-export default function AddLiquidity({ reserve1, reserve2 }) {
+export default function AddLiquidity({
+  reserve1,
+  reserve2,
+  tokenABalance,
+  tokenBBalance,
+}) {
   const [slippage, setSlippage] = useState(1);
   const [tokenA, setTokenA] = useState("");
   const [tokenB, setTokenB] = useState("");

@@ -19,7 +19,12 @@ import { Slider } from "@/components/ui/slider";
 import _debounce from "lodash.debounce";
 import { calculateSwapAforB, calculateSwapBforA } from "@/lib/serverFunctions";
 import { callIncrement } from "@/lib/testContract";
-export default function Swap({ reserve1, reserve2 }) {
+export default function Swap({
+  reserve1,
+  reserve2,
+  tokenABalance,
+  tokenBBalance,
+}) {
   const [isSwapped, setIsSwapped] = useState(false);
   const [tokenA, setTokenA] = useState("");
   const [tokenB, setTokenB] = useState("");

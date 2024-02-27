@@ -9,7 +9,11 @@ import Swap from "@/components/Swap.jsx";
 import Deposit from "@/components/AddLiquidity";
 import RemoveLiquidity from "@/components/RemoveLiquidity";
 import MintTokens from "@/components/MintTokens";
-import { readReserves } from "@/lib/serverFunctions";
+import {
+  readReserves,
+  readTokenABalance,
+  readTokenBBalance,
+} from "@/lib/serverFunctions";
 import "../styles/styles.css";
 import { Label } from "@/components/ui/label";
 export function PoolTabs({ reserve1, reserve2 }) {
@@ -18,6 +22,22 @@ export function PoolTabs({ reserve1, reserve2 }) {
     reserve1: reserve1,
     reserve2: reserve2,
   });
+  const [tokenBalances, setTokenBalances] = useState({
+    tokenABalance: 0,
+    tokenBBalance: 0,
+  });
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const reloadBalances = async () => {
+    if (connected == true) {
+      const tokenABalance = await readTokenABalance(account);
+      const tokenBBalance = await readTokenBBalance(account);
+      setTokenBalances({
+        tokenABalance: tokenABalance,
+        tokenBBalance: tokenBBalance,
+      });
+    }
+  };
 
   const reloadReserves = async () => {
     const { reserve1, reserve2 } = await readReserves();
@@ -26,21 +46,39 @@ export function PoolTabs({ reserve1, reserve2 }) {
   useEffect(() => {
     const interval = setInterval(() => {
       reloadReserves();
-    }, 10000);
+      reloadBalances();
+    }, 5000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [connected, reloadBalances]);
 
   return (
     <>
-      <div>
-        <Label style={{ color: "cyan" }}>
-          Reserve Balance: {Number(reserves.reserve1 / BigInt(1e18))}
-        </Label>
-        <div></div>
-        <Label style={{ color: "cyan" }}>
-          Reserve Balance: {Number(reserves.reserve2 / BigInt(1e18))}
-        </Label>
+      <div className="flex gap-15">
+        <div>
+          <Label style={{ color: "cyan" }}>
+            Reserve Balance: {Number(reserves.reserve1 / BigInt(1e18))}
+          </Label>
+          <div></div>
+          <Label style={{ color: "cyan" }}>
+            Reserve Balance: {Number(reserves.reserve2 / BigInt(1e18))}
+          </Label>
+        </div>
+        {connected ? (
+          <div className="ml-4">
+            <Label style={{ color: "cyan" }}>
+              Token A Wallet Balance:{" "}
+              {Number(tokenBalances.tokenABalance / BigInt(1e18))}
+            </Label>
+            <div></div>
+            <Label style={{ color: "cyan" }}>
+              Token B Wallet Balance:{" "}
+              {Number(tokenBalances.tokenBBalance / BigInt(1e18))}
+            </Label>
+          </div>
+        ) : (
+          <></>
+        )}
       </div>
       <Button
         style={{ marginBottom: "8px" }}
@@ -59,8 +97,18 @@ export function PoolTabs({ reserve1, reserve2 }) {
           <TabsTrigger value="minttokens">Mint Tokens</TabsTrigger>
         </TabsList>
 
-        <Swap reserve1={reserve1} reserve2={reserve2}></Swap>
-        <Deposit reserve1={reserve1} reserve2={reserve2}></Deposit>
+        <Swap
+          reserve1={reserve1}
+          reserve2={reserve2}
+          tokenABalance={tokenBalances.tokenABalance}
+          tokenBBalance={tokenBalances.tokenBBalance}
+        ></Swap>
+        <Deposit
+          reserve1={reserve1}
+          reserve2={reserve2}
+          tokenABalance={tokenBalances.tokenABalance}
+          tokenBBalance={tokenBalances.tokenBBalance}
+        ></Deposit>
         <RemoveLiquidity></RemoveLiquidity>
         <MintTokens></MintTokens>
       </Tabs>

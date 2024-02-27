@@ -1,9 +1,7 @@
 import { PoolTabs } from "@/components/PoolTabs";
-import { readReserves } from "@/lib/serverFunctions";
+import { readReserves, readTokenBalance } from "@/lib/serverFunctions";
 export default async function Home() {
   const { reserve1, reserve2 } = await readReserves();
-  console.log(reserve1);
-  console.log(reserve2);
   return (
     <>
       <div

@@ -15,6 +15,7 @@ export const ConnectWalletButton = () => {
   const connect = async () => {
     try {
       await sdk?.connect();
+      console.log("connected");
     } catch (err) {
       console.warn(`No accounts found`, err);
     }
