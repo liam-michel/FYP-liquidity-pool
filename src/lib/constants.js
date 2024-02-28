@@ -1,7 +1,7 @@
 export const t1Address = "0x35C372f0947b9E831A3fB90F7892634471d81953";
 export const t2Address = "0x1ed5304eB5952C18E1C68b77D611d179D08F2B09";
-export const lPTokenAddress = "0x4c81758c8D674B7A327d017ec74D509f558088FA";
-export const LPAddress = "0xF4624C58CAa13a9378ED2Dc89A0969a62d010fE2";
+export const lPTokenAddress = "0xEeFe9bF37F0D5e989C12f98413ea14f39B9aC11F";
+export const LPAddress = "0x61106Edededa61De2bFFAA9F26b85c649a6a070F";
 export const rpc = "https://rpc.sepolia.org";
 
 export const tokens = [
@@ -392,6 +392,27 @@ export const LiquidityPoolABI = [
   {
     inputs: [
       {
+        internalType: "address",
+        name: "_t1",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "_t2",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "_lptoken",
+        type: "address",
+      },
+    ],
+    stateMutability: "nonpayable",
+    type: "constructor",
+  },
+  {
+    inputs: [
+      {
         internalType: "uint256",
         name: "_amount1",
         type: "uint256",
@@ -506,6 +527,35 @@ export const LiquidityPoolABI = [
         name: "countIn",
         type: "uint256",
       },
+      {
+        internalType: "uint256",
+        name: "slippage_minimum",
+        type: "uint256",
+      },
+    ],
+    name: "slippage_swap",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "success",
+        type: "bool",
+      },
+    ],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "_token",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "countIn",
+        type: "uint256",
+      },
     ],
     name: "swap",
     outputs: [
@@ -568,68 +618,6 @@ export const LiquidityPoolABI = [
       },
     ],
     stateMutability: "view",
-    type: "function",
-  },
-];
-
-export const testAddress = "0x0CfA934A699F39C0feE82615ccF6DC75e9aA63c6";
-export const incrementABI = [
-  {
-    inputs: [],
-    name: "count",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "count2",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "incrementCount",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "newCount",
-        type: "uint256",
-      },
-    ],
-    name: "setCount",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "nonpayable",
     type: "function",
   },
 ];
