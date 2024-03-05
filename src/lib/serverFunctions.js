@@ -23,6 +23,9 @@ export async function readReserves() {
 }
 
 export const calculateSwapAforB = async (amountIn, reserve1, reserve2) => {
+  if (reserve1 == 0 || reserve2 == 0) {
+    return 0;
+  }
   console.log("hi");
   const res1 = new BigNumber(reserve1);
   const res2 = new BigNumber(reserve2);
@@ -36,6 +39,9 @@ export const calculateSwapAforB = async (amountIn, reserve1, reserve2) => {
 };
 
 export const calculateSwapBforA = async (amountIn, reserve1, reserve2) => {
+  if (reserve1 == 0 || reserve2 == 0) {
+    return 0;
+  }
   const res1 = new BigNumber(reserve1);
   const res2 = new BigNumber(reserve2);
   const withFees = new BigNumber(amountIn).times(1e18).times(0.997);
@@ -48,6 +54,9 @@ export const calculateSwapBforA = async (amountIn, reserve1, reserve2) => {
 };
 
 export const calculateAtoBLiquidity = async (tokenAIn, reserve1, reserve2) => {
+  if (reserve1 == 0 || reserve2 == 0) {
+    return 0;
+  }
   const tokenIn = new BigNumber(tokenAIn).times(1e18);
   const res1 = new BigNumber(reserve1);
   const res2 = new BigNumber(reserve2);
@@ -61,6 +70,9 @@ export const calculateAtoBLiquidity = async (tokenAIn, reserve1, reserve2) => {
 };
 
 export const calculateBtoALiquidity = async (tokenBIn, reserve1, reserve2) => {
+  if (reserve1 == 0 || reserve2 == 0) {
+    return 0;
+  }
   const tokenIn = new BigNumber(tokenBIn).times(1e18);
   const res1 = new BigNumber(reserve1);
   const res2 = new BigNumber(reserve2);

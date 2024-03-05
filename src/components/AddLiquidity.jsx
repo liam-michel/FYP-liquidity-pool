@@ -19,7 +19,11 @@ import {
   calculateAtoBLiquidity,
   calculateBtoALiquidity,
 } from "@/lib/serverFunctions";
-import { addLiquidity } from "@/lib/liquidity-frontend";
+import {
+  addLiquidity,
+  testCall,
+  approveTokenTransfer,
+} from "@/lib/liquidity-frontend";
 
 export default function AddLiquidity({
   reserve1,
@@ -50,7 +54,9 @@ export default function AddLiquidity({
     if (isNumeric(value[0])) {
       console.log("calculating amount of token B");
       let res = await calculateAtoBLiquidity(value, reserve1, reserve2);
-      setTokenB(res);
+      if (res !== 0) {
+        setTokenB(res);
+      }
     }
   };
 
@@ -58,7 +64,9 @@ export default function AddLiquidity({
     if (isNumeric(value[0])) {
       console.log("calculating amount of token A");
       let res = await calculateBtoALiquidity(value, reserve1, reserve2);
-      setTokenA(res);
+      if (res !== 0) {
+        setTokenA(res);
+      }
     }
   };
   const debouncedAtoB = useDebounceFunc(handleAtoB, 500);
@@ -137,7 +145,8 @@ export default function AddLiquidity({
           <Button
             onClick={async (e) => {
               if (isNumeric(tokenA) && isNumeric(tokenB)) {
-                await addLiquidity(tokenA, tokenB, slippage);
+                //await addLiquidity(tokenA, tokenB, slippage);
+                await testCall();
               }
             }}
           >

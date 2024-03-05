@@ -1,8 +1,80 @@
 export const t1Address = "0x35C372f0947b9E831A3fB90F7892634471d81953";
 export const t2Address = "0x1ed5304eB5952C18E1C68b77D611d179D08F2B09";
 export const lPTokenAddress = "0xEeFe9bF37F0D5e989C12f98413ea14f39B9aC11F";
-export const LPAddress = "0x61106Edededa61De2bFFAA9F26b85c649a6a070F";
+export const LPAddress = "0x6f05839608012cD7152e722AE96Ca3c285F4e5f8";
 export const rpc = "https://rpc.sepolia.org";
+
+export const testABI = [
+  {
+    inputs: [],
+    name: "incrementCount",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "newCount",
+        type: "uint256",
+      },
+    ],
+    name: "setCount",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "tokenAddress",
+        type: "address",
+      },
+    ],
+    stateMutability: "nonpayable",
+    type: "constructor",
+  },
+  {
+    inputs: [],
+    name: "count",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "count2",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+];
 
 export const tokens = [
   {

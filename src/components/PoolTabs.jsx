@@ -46,7 +46,9 @@ export function PoolTabs({ reserve1, reserve2 }) {
   useEffect(() => {
     const interval = setInterval(() => {
       reloadReserves();
-      reloadBalances();
+      if (connected) {
+        reloadBalances();
+      }
     }, 5000);
 
     return () => clearInterval(interval);
@@ -67,13 +69,13 @@ export function PoolTabs({ reserve1, reserve2 }) {
         {connected ? (
           <div className="ml-4">
             <Label style={{ color: "cyan" }}>
-              Token A Wallet Balance:{" "}
-              {Number(tokenBalances.tokenABalance / BigInt(1e18))}
+              Token A Wallet Balance:
+              {Number(BigInt(tokenBalances.tokenABalance) / BigInt(1e18))}
             </Label>
             <div></div>
             <Label style={{ color: "cyan" }}>
-              Token B Wallet Balance:{" "}
-              {Number(tokenBalances.tokenBBalance / BigInt(1e18))}
+              Token B Wallet Balance:
+              {Number(BigInt(tokenBalances.tokenBBalance) / BigInt(1e18))}
             </Label>
           </div>
         ) : (

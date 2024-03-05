@@ -28,7 +28,6 @@ export default function MintTokens() {
   const isNumeric = (value) => {
     return /^\d+(\.\d+)?$/.test(value);
   };
-
   return (
     <TabsContent value="minttokens">
       <Card className="tab-card" style={{ background: "LightSlateGray" }}>
@@ -61,8 +60,7 @@ export default function MintTokens() {
               />
               <Button
                 onClick={async (e) => {
-                  if (isNumeric(tokenA)) {
-                    console.log(tokenA);
+                  if (isNumeric(tokenA) && Number(tokenA) > 0) {
                     await mintTokenA(tokenA);
                   }
                 }}
@@ -90,7 +88,7 @@ export default function MintTokens() {
               />{" "}
               <Button
                 onClick={async (e) => {
-                  if (isNumeric(tokenB)) {
+                  if (isNumeric(tokenB) && Number(tokenB) > 0) {
                     await mintTokenB(tokenB);
                   }
                 }}

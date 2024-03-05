@@ -17,19 +17,19 @@ export default function useDebounce(value, delay) {
 }
 
 export function useDebounceFunc(callback, t) {
-  const ref = useRef(callback)
+  const ref = useRef(callback);
 
   useEffect(() => {
-    ref.current = callback
+    ref.current = callback;
   }, [callback]);
 
   const debouncedFunc = useMemo(() => {
     const func = (...args) => {
-      return ref.current(args)
-    }
+      return ref.current(args);
+    };
 
-    return debounce(func, t)
-  }, [])
+    return debounce(func, t);
+  }, []);
 
   return debouncedFunc;
 }

@@ -6,6 +6,7 @@ import {
   t2Address,
   t1Address,
   swapTokenABI,
+  testABI,
 } from "./constants.js";
 
 import Web3 from "web3";
@@ -108,15 +109,14 @@ export const addLiquidity = async (tokenA, tokenB, slippage) => {
       LiquidityPoolABI,
       LPAddress
     );
-    const transaction = contract.methods.addLiquidity(
-      conv_A,
-      conv_B,
-      roundedSlippage
-    );
-    const gas = await transaction.estimateGas({ from: account });
-    const gasPrice = await web3.eth.getGasPrice();
-    await transaction
-      .send({ from: account, gas: gas, gasPrice: gasPrice })
+    await approveTokenTransfer(conv_A, t1Address, account);
+    await approveTokenTransfer(conv_B, t2Address, account);
+    const networkGas = await web3.eth.getGasPrice();
+    console.log("hello");
+
+    await contract.methods
+      .addLiquidity(conv_A, conv_B, roundedSlippage)
+      .send({ from: account, gasPrice: networkGas })
       .on("receipt", (receipt) => {
         console.log("Transaction was successful: ", receipt);
         return true;
@@ -237,4 +237,40 @@ export const mintTokenB = async (amountIn) => {
   } catch (error) {
     console.error(error);
   }
+};
+
+export const testCall = async () => {
+  const tokenAddress = "0x72EbAa244a2EBC3763071E08C3dc0b6A80EB4cFa";
+  const web3 = new Web3(window.ethereum);
+  const accounts = await window.ethereum.request({
+    method: "eth_requestAccounts",
+  });
+  const account = accounts[0]; // Use the first account
+  const contract = new web3.eth.Contract(testABI, tokenAddress);
+  await approveTokenTransfer(Web3.utils.toWei(10, "ether"), t1Address, account);
+
+  const gas = await web3.eth.getGasPrice();
+  console.log(gas);
+
+  await contract.methods
+    .setCount(5)
+    .send({ from: account, gasPrice: gas, to: tokenAddress })
+    .on("receipt", (receipt) => {
+      console.log("approval receipt", receipt);
+    });
+};
+
+export const approveTokenTransfer = async (amount, tokenAddress, spender) => {
+  const web3 = new Web3(window.ethereum);
+  const accounts = await window.ethereum.request({
+    method: "eth_requestAccounts",
+  });
+  const account = accounts[0]; // Use the first account
+  const contract = new web3.eth.Contract(swapTokenABI, tokenAddress);
+  await contract.methods
+    .approve(spender, amount)
+    .send({ from: account })
+    .on("receipt", function (receipt) {
+      console.log("approval receipt", receipt);
+    });
 };
