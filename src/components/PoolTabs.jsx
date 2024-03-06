@@ -13,6 +13,7 @@ import {
   readReserves,
   readTokenABalance,
   readTokenBBalance,
+  readLPTokenBalance,
 } from "@/lib/serverFunctions";
 import "../styles/styles.css";
 import { Label } from "@/components/ui/label";
@@ -25,6 +26,7 @@ export function PoolTabs({ reserve1, reserve2 }) {
   const [tokenBalances, setTokenBalances] = useState({
     tokenABalance: 0,
     tokenBBalance: 0,
+    LPTokenBalance: 0,
   });
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -32,9 +34,11 @@ export function PoolTabs({ reserve1, reserve2 }) {
     if (connected == true) {
       const tokenABalance = await readTokenABalance(account);
       const tokenBBalance = await readTokenBBalance(account);
+      const LPTokenBalance = await readLPTokenBalance(account);
       setTokenBalances({
         tokenABalance: tokenABalance,
         tokenBBalance: tokenBBalance,
+        LPTokenBalance: LPTokenBalance,
       });
     }
   };
@@ -43,6 +47,7 @@ export function PoolTabs({ reserve1, reserve2 }) {
     const { reserve1, reserve2 } = await readReserves();
     setReserves({ reserve1: reserve1, reserve2: reserve2 });
   };
+
   useEffect(() => {
     const interval = setInterval(() => {
       reloadReserves();
@@ -76,6 +81,11 @@ export function PoolTabs({ reserve1, reserve2 }) {
             <Label style={{ color: "cyan" }}>
               Token B Wallet Balance:
               {Number(BigInt(tokenBalances.tokenBBalance) / BigInt(1e18))}
+            </Label>
+            <div></div>
+            <Label style={{ color: "cyan" }}>
+              LP Token Wallet Balance:
+              {Number(BigInt(tokenBalances.LPTokenBalance) / BigInt(1e18))}
             </Label>
           </div>
         ) : (

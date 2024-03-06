@@ -18,7 +18,6 @@ import { TabsContent } from "@/components/ui/tabs";
 import { Slider } from "@/components/ui/slider";
 import _debounce from "lodash.debounce";
 import { calculateSwapAforB, calculateSwapBforA } from "@/lib/serverFunctions";
-import { callIncrement } from "@/lib/testContract";
 export default function Swap({
   reserve1,
   reserve2,

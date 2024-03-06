@@ -23,6 +23,7 @@ import {
   addLiquidity,
   testCall,
   approveTokenTransfer,
+  test2,
 } from "@/lib/liquidity-frontend";
 
 export default function AddLiquidity({
@@ -145,8 +146,7 @@ export default function AddLiquidity({
           <Button
             onClick={async (e) => {
               if (isNumeric(tokenA) && isNumeric(tokenB)) {
-                //await addLiquidity(tokenA, tokenB, slippage);
-                await testCall();
+                await addLiquidity(tokenA, tokenB, slippage);
               }
             }}
           >

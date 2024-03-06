@@ -47,6 +47,8 @@ export const callSwap = async (tokenACount, tokenBCount, slippage, bool) => {
     let transaction;
     if (bool == false) {
       console.log("Swapping Token A for Token B");
+      //approve transfer of token A
+      await approveTokenTransfer(conv_A, t1Address, LPAddress);
       const minimum = new BigNumber(tokenBCount)
         .times(100 - slippage)
         .div(100)
@@ -62,6 +64,8 @@ export const callSwap = async (tokenACount, tokenBCount, slippage, bool) => {
       //do swap from token B to token A
     } else {
       console.log("Swapping Token B for Token A");
+      //approve transfer of token B
+      await approveTokenTransfer(conv_B, t2Address, LPAddress);
       const minimum = new BigNumber(tokenACount)
         .times(100 - slippage)
         .div(100)
@@ -74,11 +78,10 @@ export const callSwap = async (tokenACount, tokenBCount, slippage, bool) => {
         Web3.utils.toWei(minimum, "ether")
       );
     }
-    const gas = await transaction.estimateGas({ from: account });
     const gasPrice = await web3.eth.getGasPrice();
 
     await transaction
-      .send({ from: account, gas: gas, gasPrice: gasPrice })
+      .send({ from: account, gasPrice: gasPrice })
       .on("receipt", (receipt) => {
         console.log("Transaction was successful");
         return true;
@@ -109,14 +112,19 @@ export const addLiquidity = async (tokenA, tokenB, slippage) => {
       LiquidityPoolABI,
       LPAddress
     );
-    await approveTokenTransfer(conv_A, t1Address, account);
-    await approveTokenTransfer(conv_B, t2Address, account);
-    const networkGas = await web3.eth.getGasPrice();
-    console.log("hello");
+
+    await approveTokenTransfer(conv_A, t1Address, LPAddress);
+    await approveTokenTransfer(conv_B, t2Address, LPAddress);
+    //estimate the gas price
+    console.log("Estimating gas");
+    // const estimatedGas = await contract.methods
+    //   .addLiquidity(conv_A, conv_B, roundedSlippage)
+    //   .estimateGas({ from: account });
+    // console.log("estimated gas is: ", estimatedGas);
 
     await contract.methods
       .addLiquidity(conv_A, conv_B, roundedSlippage)
-      .send({ from: account, gasPrice: networkGas })
+      .send({ from: account })
       .on("receipt", (receipt) => {
         console.log("Transaction was successful: ", receipt);
         return true;
@@ -240,24 +248,25 @@ export const mintTokenB = async (amountIn) => {
 };
 
 export const testCall = async () => {
-  const tokenAddress = "0x72EbAa244a2EBC3763071E08C3dc0b6A80EB4cFa";
+  const contractAddress = "0x5CAAf6556109252A344b63DE567dD2A0A19cD264";
   const web3 = new Web3(window.ethereum);
   const accounts = await window.ethereum.request({
     method: "eth_requestAccounts",
   });
-  const account = accounts[0]; // Use the first account
-  const contract = new web3.eth.Contract(testABI, tokenAddress);
-  await approveTokenTransfer(Web3.utils.toWei(10, "ether"), t1Address, account);
+  const account = accounts[0]; // Use the first  account
+  const contract = new web3.eth.Contract(testABI, contractAddress);
+  await approveTokenTransfer(
+    Web3.utils.toWei(10, "ether"),
+    t1Address,
+    contractAddress
+  );
 
-  const gas = await web3.eth.getGasPrice();
-  console.log(gas);
-
-  await contract.methods
+  const estimatedGas = await contract.methods
     .setCount(5)
-    .send({ from: account, gasPrice: gas, to: tokenAddress })
-    .on("receipt", (receipt) => {
-      console.log("approval receipt", receipt);
-    });
+    .estimateGas({ from: account });
+  console.log("estimated gas is :", estimatedGas);
+
+  await contract.methods.setCount(5).send({ from: account, gas: estimatedGas });
 };
 
 export const approveTokenTransfer = async (amount, tokenAddress, spender) => {
