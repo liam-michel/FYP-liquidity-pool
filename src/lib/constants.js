@@ -1,7 +1,7 @@
-export const t1Address = "0x7F4E10f6bd08e051a526B7958489652b3d37ffce";
-export const t2Address = "0x7086c2e5d27951380704F53b7E555ABbf71AA9e6";
-export const LPTokenAddress = "0xC631a22958fF320BCcCC88cFA51DFfc885b0266B";
-export const LPAddress = "0xBb12eB274a66B564a93a09bAF9E4BE48161E64a4";
+export const t1Address = "0xf985249b2d145Ab67b7184CeB88f240b6F4Bb8A9";
+export const t2Address = "0xf09DCdFD2139Ceb2CC75C5d51d445EC17a3e7629";
+export const LPTokenAddress = "0xE8ccB9058f81Cd242eD89Ac5141E50F41087fDEb";
+export const LPAddress = "0xEfB3E028c628d2e046Ab4FFe297A77D843aE9780";
 export const rpc = "https://rpc.sepolia.org";
 
 export const LPTokenABI = [
@@ -529,6 +529,11 @@ export const tokens = [
     symbol: "T2",
     decimals: 18,
   },
+  {
+    address: LPTokenAddress,
+    symbol: "lp",
+    decimals: 18,
+  },
 ];
 
 export const swapTokenABI = [
@@ -906,27 +911,6 @@ export const LiquidityPoolABI = [
   {
     inputs: [
       {
-        internalType: "address",
-        name: "_t1",
-        type: "address",
-      },
-      {
-        internalType: "address",
-        name: "_t2",
-        type: "address",
-      },
-      {
-        internalType: "address",
-        name: "_lptoken",
-        type: "address",
-      },
-    ],
-    stateMutability: "nonpayable",
-    type: "constructor",
-  },
-  {
-    inputs: [
-      {
         internalType: "uint256",
         name: "_amount1",
         type: "uint256",
@@ -951,45 +935,6 @@ export const LiquidityPoolABI = [
       },
     ],
     stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "callToken",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "lockPeriod",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "lptoken",
-    outputs: [
-      {
-        internalType: "contract LPToken",
-        name: "",
-        type: "address",
-      },
-    ],
-    stateMutability: "view",
     type: "function",
   },
   {
@@ -1080,6 +1025,66 @@ export const LiquidityPoolABI = [
       },
     ],
     stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "_t1",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "_t2",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "_lptoken",
+        type: "address",
+      },
+    ],
+    stateMutability: "nonpayable",
+    type: "constructor",
+  },
+  {
+    inputs: [],
+    name: "callToken",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "lockPeriod",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "lptoken",
+    outputs: [
+      {
+        internalType: "contract LPToken",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
     type: "function",
   },
   {

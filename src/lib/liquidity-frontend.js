@@ -1,5 +1,4 @@
 import BigNumber from "bignumber.js";
-
 import {
   LiquidityPoolABI,
   LPAddress,
@@ -7,6 +6,7 @@ import {
   t1Address,
   swapTokenABI,
   testABI,
+  LPTokenAddress,
 } from "./constants.js";
 
 import Web3 from "web3";
@@ -149,16 +149,20 @@ export const addLiquidity = async (tokenA, tokenB, slippage) => {
 
 export const removeLiquidity = async (amountIn) => {
   try {
-    const converted_tokens = Web3.utils.toWei(amountIn, "ether");
+    console.log(amountIn);
     const { web3, account, contract } = await initialSetup(
       LiquidityPoolABI,
       LPAddress
     );
-    const transaction = contract.methods.removeLiquidity(converted_tokens);
-    const gas = await transaction.estimateGas({ from: account });
-    const gasPrice = await web3.eth.getGasPrice();
+
+    //await approveTokenTransfer(amountIn, LPTokenAddress, LPAddress);
+    const estimatedGas = await contract.methods
+      .removeLiquidity(amountIn)
+      .estimateGas({ from: account });
+    const transaction = contract.methods.removeLiquidity(amountIn);
+    console.log(transaction);
     await transaction
-      .send({ from: account, gas: gas, gasPrice: gasPrice })
+      .send({ from: account, gas: estimatedGas })
       .on("receipt", (receipt) => {
         console.log("Transaction was successful: ", receipt);
         return true;

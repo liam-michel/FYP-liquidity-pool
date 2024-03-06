@@ -18,7 +18,9 @@ export async function readReserves() {
   const contract = new web3.eth.Contract(LiquidityPoolABI, LPAddress);
   const reserve1 = await contract.methods.token1_reserve().call();
   const reserve2 = await contract.methods.token2_reserve().call();
-  console.log("fetched reserves");
+  console.log("fetched reserve balances");
+  console.log(reserve1);
+  console.log(reserve2);
   return {
     reserve1: reserve1,
     reserve2: reserve2,
@@ -103,5 +105,6 @@ export const readTokenBBalance = async (walletAddress) => {
 export const readLPTokenBalance = async (walletAddress) => {
   const contract = new web3.eth.Contract(LPTokenABI, LPTokenAddress);
   const userBalance = await contract.methods.balanceOf(walletAddress).call();
+
   return userBalance;
 };

@@ -85,8 +85,11 @@ export function PoolTabs({ reserve1, reserve2 }) {
             <div></div>
             <Label style={{ color: "cyan" }}>
               LP Token Wallet Balance:
-              {Number(BigInt(tokenBalances.LPTokenBalance) / BigInt(1e18))}
+              {tokenBalances.LPTokenBalance.toString()}
             </Label>
+            <Button onClick={(e) => console.log(tokenBalances.LPTokenBalance)}>
+              View balance
+            </Button>
           </div>
         ) : (
           <></>

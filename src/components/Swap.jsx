@@ -73,7 +73,10 @@ export default function Swap({
             <Avatar>
               <AvatarImage
                 src="two-arrows.svg"
-                onClick={() => setIsSwapped(!isSwapped)}
+                onClick={() => {
+                  setIsSwapped(!isSwapped);
+                  //recalculate swap ratio on change
+                }}
                 className="shadow-hover-effect"
               />
               <AvatarFallback>CN</AvatarFallback>
