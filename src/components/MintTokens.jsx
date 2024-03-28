@@ -90,6 +90,8 @@ export default function MintTokens() {
                 onClick={async (e) => {
                   if (isNumeric(tokenB) && Number(tokenB) > 0) {
                     await mintTokenB(tokenB);
+                    setTokenA("");
+                    setTokenB("");
                   }
                 }}
               >

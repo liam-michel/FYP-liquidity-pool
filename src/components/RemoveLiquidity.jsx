@@ -59,6 +59,8 @@ export default function MintTokens() {
             onClick={async (e) => {
               if (isNumeric(shares)) {
                 await removeLiquidity(shares);
+                setTokenA("");
+                setTokenB("");
               }
             }}
           >

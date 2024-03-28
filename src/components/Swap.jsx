@@ -163,6 +163,8 @@ export default function Swap({
                 } else {
                   await callSwap(tokenA, tokenB, slippage, true);
                 }
+                setTokenA("");
+                setTokenB("");
               } else {
                 console.log("No values");
               }

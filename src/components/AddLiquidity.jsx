@@ -147,6 +147,8 @@ export default function AddLiquidity({
             onClick={async (e) => {
               if (isNumeric(tokenA) && isNumeric(tokenB)) {
                 await addLiquidity(tokenA, tokenB, slippage);
+                setTokenA("");
+                setTokenB("");
               }
             }}
           >
