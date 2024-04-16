@@ -3,7 +3,7 @@
 pragma solidity 0.8.20;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "./LPToken.sol";
+import "./LpToken.sol";
 
 // 000000000000000000
 
@@ -16,7 +16,7 @@ contract LiquidityPool{
     uint public lockPeriod =  1 minutes / 2; 
     mapping(address => Deposit) deposits;
     address LPTOKEN_ADDRESS;
-    LPToken public lptoken;
+    LpToken public lptoken;
     ERC20 public token1;
     ERC20 public token2;
 
@@ -26,7 +26,7 @@ contract LiquidityPool{
     constructor(address _t1, address _t2, address _lptoken){
         token1 = ERC20(_t1);
         token2 = ERC20(_t2);
-        lptoken = LPToken(_lptoken);
+        lptoken = LpToken(_lptoken);
 
     }
 
@@ -153,7 +153,7 @@ contract LiquidityPool{
         require(_shareCount <= senderBalance, "Attempting to burn too many LP Tokens");
         require(deposits[msg.sender].amount> 0 && _shareCount <= deposits[msg.sender].amount && deposits[msg.sender].lockPeriodEnd <= block.timestamp, "Too early to withdraw liquidity");
         //we want to return amount of liquidity that is proportional to the # of shares this lp provider has
-        //enable calling of LPToken smart contract
+        //enable calling of LpToken smart contract
         
         uint LPTotalSupply = lptoken.totalSupply();
         //transfer correct proportion of reserves to the sender

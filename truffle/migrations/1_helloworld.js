@@ -1,5 +1,7 @@
 const MyContract = artifacts.require("helloworld");
 
-module.exports = function (deployer) {
-  deployer.deploy(MyContract);
+module.exports = async function (deployer) {
+  await deployer.deploy(MyContract);
+  const deployed = await MyContract.deployed();
+  console.log(deployed.address);
 };

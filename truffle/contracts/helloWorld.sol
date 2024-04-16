@@ -4,8 +4,9 @@ pragma solidity 0.8.20;
 
 contract helloworld{
     string public message = "Hello World!";
-    function setMessage(string memory newMessage) public {
+    function setMessage(string memory newMessage) public returns (string memory){
         message = newMessage;
+        return message;
     }
     function getMessage() public view returns(string memory){
         return message;
