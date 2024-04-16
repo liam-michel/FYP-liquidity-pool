@@ -1,0 +1,9 @@
+const LPToken = artifacts.require("LPToken");
+const Swap = artifacts.require("SwapToken");
+const LiquidityPool = artifacts.require("LiquidityPool");
+
+module.exports = function (deployer) {
+  deployer.deploy(LPToken);
+  deployer.deploy(Swap);
+  deployer.deploy(LiquidityPool);
+};
