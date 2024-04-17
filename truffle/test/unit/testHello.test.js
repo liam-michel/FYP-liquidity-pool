@@ -1,4 +1,7 @@
 const HelloWorld = artifacts.require("HelloWorld");
+const LiquidityPool = artifacts.require("LiquidityPool");
+const SwapToken = artifacts.require("SwapToken");
+const LpToken = artifacts.require("LpToken");
 
 contract("HelloWorld", (accounts) => {
   it("should return 'Hello, World!' after setMessage is called", async () => {

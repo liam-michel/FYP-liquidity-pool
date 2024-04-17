@@ -221,8 +221,7 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function",
-      "constant": true
+      "type": "function"
     },
     {
       "inputs": [
@@ -265,8 +264,7 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function",
-      "constant": true
+      "type": "function"
     },
     {
       "inputs": [],
@@ -279,8 +277,7 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function",
-      "constant": true
+      "type": "function"
     },
     {
       "inputs": [],
@@ -293,8 +290,7 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function",
-      "constant": true
+      "type": "function"
     },
     {
       "inputs": [],
@@ -307,8 +303,7 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function",
-      "constant": true
+      "type": "function"
     },
     {
       "inputs": [],
@@ -328,8 +323,7 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function",
-      "constant": true
+      "type": "function"
     },
     {
       "inputs": [],
@@ -342,8 +336,7 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function",
-      "constant": true
+      "type": "function"
     },
     {
       "inputs": [
@@ -11383,13 +11376,12 @@
         }
       },
       "links": {},
-      "address": "0xEe07aC871869E7db3BAB2327f5277abd31f007c5",
-      "transactionHash": "0x0bbb4570a290da13f76d89ceb05e87cfc6b4058ccf8ebe9fd60668f2d3b17d24"
+      "address": "0xE6897AA389EE2141ffE2ea9039a66f5C433ddCA6",
+      "transactionHash": "0x08f8f2573e59ccd675d9f15f987a8871cfb26d67df08dc5df802f03b99bd22b9"
     }
   },
   "schemaVersion": "3.4.16",
-  "updatedAt": "2024-04-16T03:25:43.446Z",
-  "networkType": "ethereum",
+  "updatedAt": "2024-04-16T20:25:04.856Z",
   "devdoc": {
     "errors": {
       "ERC20InsufficientAllowance(address,uint256,uint256)": [

@@ -17,7 +17,7 @@ contract LpToken is ERC20, Ownable {
     }
     
     function burn(address recipient, uint amount) public onlyOwner {
-        require(balanceOf(recipient) <= amount);
+        require(balanceOf(recipient) >= amount);
         _burn(recipient, amount);
 
 
