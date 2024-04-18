@@ -1,10 +1,11 @@
 // contracts/GLDToken.sol
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
-import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
+//import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 
 contract PriceConsumer{
-    AggregatorV3Interface internal dataFeed;
+    //AggregatorV3Interface internal dataFeed;
+
     uint reserve1 = 0;
     uint reserve2 = 0;
     uint immutable precision = 18;
@@ -13,11 +14,11 @@ contract PriceConsumer{
     uint lastCheckTime = block.timestamp;
 
     constructor(){
-        dataFeed = AggregatorV3Interface(0x42585eD362B3f1BCa95c640FdFf35Ef899212734);
+        //dataFeed = AggregatorV3Interface(0x42585eD362B3f1BCa95c640FdFf35Ef899212734);
     }
 
 
-    function calculateSwap(uint countIn, uint ratio) internal view returns(uint amountOut){
+    function calculateSwap(uint countIn) internal view returns(uint amountOut){
         //calculate the fee for this trade
         
         //calculate amount of token in (with fee of 0.3%)
@@ -37,7 +38,8 @@ contract PriceConsumer{
         //     /*uint80 answeredInRound*/
         // ) = dataFeed.latestRoundData();
         // return answer;
-        return uint256(5058822323789223);
+        return uint256(2000000000000000000);
+        //return uint256(5058822323789223);
     }
 
     function setReserve1(uint _reserve1) public  returns(uint){
@@ -110,18 +112,26 @@ contract PriceConsumer{
             dataPoints[dataPoints.length-1] = point;
         }
         return calculateSMA();
-
     }
 
-    function swap(uint amount) public returns(uint[] memory points){
-        if(calculateTimeDiff()){
-            uint256 newChainlinkRatio = getChainlinkDataFeedLatestAnswer();
-            uint average_ratio = shiftPoints(dataPoints.length, newChainlinkRatio);
-            uint return_amount = calculateSwap(amount, average_ratio);
-
-        }
-        return dataPoints;
+    function calculatePercentageDifference(uint256 num1, uint256 num2) public pure returns (uint256) {
+        require(num2 != 0, "Cannot divide by zero");
+        uint256 difference = (num1 > num2) ? (num1 - num2) : (num2 - num1);
+        uint256 percentage = (difference * 100) / num2;
+        return percentage;
     }
+
+
+   // function swap(uint amount) public view returns(uint[] memory points){
+        //if(calculateTimeDiff()){
+            //uint256 newChainlinkRatio = getChainlinkDataFeedLatestAnswer();
+            //uint average_ratio = shiftPoints(dataPoints.length, newChainlinkRatio);
+            //uint return_amount = calculateSwap(amount);
+
+        //}
+
+       // return dataPoints;
+    //}
 
 
 
