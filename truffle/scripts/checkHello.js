@@ -1,5 +1,3 @@
-// scripts/interactWithContract.js
-
 const MyContract = artifacts.require("helloworld");
 
 module.exports = async function (callback) {

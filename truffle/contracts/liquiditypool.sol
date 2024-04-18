@@ -145,13 +145,16 @@ contract LiquidityPool{
         //update the current user deposit
         addDeposit(shares);
         return shares;
-
+ 
     }
 
     function removeLiquidity(uint _shareCount) external returns(uint token1Amount, uint token2Amount) {
         uint senderBalance = lptoken.balanceOf(msg.sender);
         require(_shareCount <= senderBalance, "Attempting to burn too many LP Tokens");
-        require(deposits[msg.sender].amount> 0 && _shareCount <= deposits[msg.sender].amount && deposits[msg.sender].lockPeriodEnd <= block.timestamp, "Too early to withdraw liquidity");
+        require(deposits[msg.sender].amount> 0 && _shareCount <= deposits[msg.sender].amount, "Too early to withdraw liquidity");
+
+        // require(deposits[msg.sender].amount> 0 && _shareCount <= deposits[msg.sender].amount && deposits[msg.sender].lockPeriodEnd <= block.timestamp, "Too early to withdraw liquidity");
+        
         //we want to return amount of liquidity that is proportional to the # of shares this lp provider has
         //enable calling of LpToken smart contract
         

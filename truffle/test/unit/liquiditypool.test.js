@@ -98,4 +98,29 @@ contract("Liquidity Pool tests", (accounts) => {
       assert(error.message.includes("revert"), "expected a revert error");
     }
   });
+  it("should allow the user to swap an amount of token A for an amount of token B", async () => {
+    await swap1.mint(1000);
+    await swap2.mint(500);
+    // approve on swapTokens for liquidity pool to spend
+    await swap1.approve(liquiditypool.address, 1000);
+    await swap2.approve(liquiditypool.address, 500);
+
+    // Deposit liquidity
+    await liquiditypool.addLiquidity(1000, 50, 0);
+
+    // Swap token A for token B
+    await liquiditypool.swap(swap1.address, 100);
+    const newABalance = await swap1.balanceOf(accounts[0]);
+    const newBBalance = await swap2.balanceOf(accounts[0]);
+    assert.equal(
+      newABalance.toString(),
+      "900",
+      "The balance was not set correctly"
+    );
+    assert.equal(
+      newBBalance.toString(),
+      "550",
+      "The balance was not set correctly"
+    );
+  });
 });

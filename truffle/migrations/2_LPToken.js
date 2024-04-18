@@ -1,5 +1,3 @@
-const { fromJSON } = require("postcss");
-
 const MyContract = artifacts.require("LpToken");
 
 module.exports = function (deployer, network, accounts) {
