@@ -186,7 +186,7 @@ contract LiquidityPool{
         lptoken.burn(msg.sender, shares);
     }
 
-    function calculateSwap(uint countIn, uint inReserve, uint outReserve) internal pure returns(uint amountOut){
+    function calculateSwap(uint countIn, uint inReserve, uint outReserve) public pure returns(uint amountOut){
         //calculate amount of token in (with fee of 0.3%)
         uint countInWithFee = (countIn * 997) / 1000;
         //dy = ydx / x + dx 

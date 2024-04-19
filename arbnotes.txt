@@ -1,0 +1,5 @@
+Price Ratios are A/B.
+the lower A/B is, the more expensive A is 
+
+1. internal ratio < external ratio, user has B
+A is more expensive internally

@@ -47,30 +47,51 @@ describe("Liquidity Pool tests", () => {
       }
   })
 
-it('should allow the user to withdraw liquidity from the pool after depositing it and the locking period has passed', async() => {
-  const [owner] = await ethers.getSigners();
-  await swap1.mint(1000);
-  await swap2.mint(500);
-  await swap1.approve(liquiditypool, 1000);
-  await swap2.approve(liquiditypool, 500);
+  it('should allow the user to withdraw liquidity from the pool after depositing it and the locking period has passed', async() => {
+    const [owner] = await ethers.getSigners();
+    await swap1.mint(1000);
+    await swap2.mint(500);
+    await swap1.approve(liquiditypool, 1000);
+    await swap2.approve(liquiditypool, 500);
 
-  await liquiditypool.addLiquidity(1000, 500, 0); 
+    await liquiditypool.addLiquidity(1000, 500, 0); 
 
-  const shares = await lptoken.balanceOf(owner);
-  console.log("Shares minted: ", shares.toString());
+    const shares = await lptoken.balanceOf(owner);
+    console.log("Shares minted: ", shares.toString());
 
-  //await time.increase(time.duration.seconds[31]);
-  await liquiditypool.removeLiquidity(shares);
-  const newABalance = await swap1.balanceOf(owner);
-  const newBBalance = await swap2.balanceOf(owner);
-  assert.equal(
-    newABalance,
-    1000,
-  );
-  assert.equal(newBBalance, 500);
+    //await time.increase(time.duration.seconds[31]);
+    await liquiditypool.removeLiquidity(shares);
+    const newABalance = await swap1.balanceOf(owner);
+    const newBBalance = await swap2.balanceOf(owner);
+    assert.equal(
+      newABalance,
+      1000,
+    );
+    assert.equal(newBBalance, 500);
 
+  });
+  it('should allow the user to swap an amount of token A for an amount of token B', async () => {
+    const [owner, second] = await ethers.getSigners();  
 
+    await swap1.mint(1000);
+    await swap2.mint(500);
+    //approve on swapTokens for liquidty pool to spend
+    await swap1.approve(liquiditypool, 1000);
+    await swap2.approve(liquiditypool, 500);
+    await liquiditypool.addLiquidity(1000, 500, 0);
+    
+    //mint some tokens to another account
+    const secondswap1 = await swap1.connect(second);
+    const secondswap2 = await swap2.connect(second);
+    const secondliquiditypool = await liquiditypool.connect(second);
+    await secondswap1.mint(150);
+    await secondswap1.approve(liquiditypool, 150);
+    await secondliquiditypool.swap(secondswap1, 150);
+    const newBBalance = await secondswap2.balanceOf(second);
+    const newABalance = await secondswap1.balanceOf(second);
+    console.log(newBBalance.toString());
+    assert.isAbove(Number(newBBalance),0 , "new balance should be greater than 0");
+    assert.equal(Number(newABalance), 0 , "new balance should be 0");
+  })
 
-  
-})
 })
