@@ -13,6 +13,7 @@
     "@nomicfoundation/hardhat-toolbox": "^5.0.0",
     "@openzeppelin/contracts": "^5.0.2",
     "@openzeppelin/test-helpers": "^0.5.16",
+    "ethers": "^6.12.0",
     "hardhat": "^2.22.3"
   }
 }

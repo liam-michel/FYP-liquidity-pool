@@ -185,6 +185,10 @@ contract LiquidityPool{
         //burn the LP tokens that the user has redemeed for their share of liquidity pool reserves
         lptoken.burn(msg.sender, shares);
     }
+    function amountWithFee(uint countIn) public view returns(uint){
+        uint countInWithFee = (countIn * 997) / 1000;
+        return countInWithFee;
+    }
 
     function calculateSwap(uint countIn, uint inReserve, uint outReserve) public pure returns(uint amountOut){
         //calculate amount of token in (with fee of 0.3%)

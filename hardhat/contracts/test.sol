@@ -8,7 +8,7 @@ contract PriceConsumer{
 
     uint public reserve1 = 0;
     uint public reserve2 = 0;
-    uint immutable precision = 18;
+    uint immutable precision = 1e18;
     uint immutable baseFee = 3 * 10**15 ;//0.3% fee for each trade
     uint[] private dataPoints;
     uint lastCheckTime = block.timestamp;
@@ -54,13 +54,13 @@ contract PriceConsumer{
 
     function getReserveRatio() public view returns(uint){  
         require(reserve1> 0 && reserve2 > 0 );
-        uint ratio = (reserve1 * 10 ** precision) / reserve2;
+        uint ratio = (reserve1 * precision) / reserve2;
         return ratio;
 
     }
 
     function withFee(uint amount) public pure returns(uint){
-        uint minusFee = amount * (10**18 - baseFee) / 10**18;
+        uint minusFee = amount * (10**18 - (baseFee * 10**15) / 10**18);
         return minusFee;
     }
     

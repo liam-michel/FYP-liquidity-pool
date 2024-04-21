@@ -11,7 +11,6 @@ contract SwapToken is ERC20 {
     }
 
     function mint(uint amount) public {
-        require(amount <= 1000 * 10 ** uint(decimals()));
         _mint(msg.sender, amount);
     }
     
