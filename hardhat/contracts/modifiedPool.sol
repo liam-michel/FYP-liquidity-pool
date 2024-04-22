@@ -22,7 +22,7 @@ contract DynamicLiquidityPool{
     uint public token2_reserve = 0;
     uint public precision = 1e18;
     uint public baseFee = 3*10e15;
-    uint[] private dataPoints;
+    uint[] public dataPoints;
     uint private lastCheckTime = block.timestamp;
     uint256 public lastFetchedExternalRatio = 0;
     uint256 public average_external_ratio;
@@ -34,6 +34,10 @@ contract DynamicLiquidityPool{
         lptoken = LpToken(_lptoken);
 
 
+    }
+
+    function getDataPoints() public view returns(uint[] memory){
+        return dataPoints;
     }
 
     //ONLY HERE FOR TESTING PURPOSES, NEEDS TO BE REMOVED BEFORE ACTUAL USE :D
@@ -73,7 +77,7 @@ contract DynamicLiquidityPool{
     }
 
     function withFee(uint amount) public view returns(uint){
-        uint minusFee = amount * (10**18 - (baseFee * 10**15) / 10**18);
+        uint minusFee = amount * (10**18 - baseFee) / 10**18;
         return minusFee;
     }
 
@@ -136,12 +140,12 @@ contract DynamicLiquidityPool{
         calculateSMA();
     }
 
-    function calculatePercentageDifference(uint256 num1, uint256 num2) public pure returns (uint256) {
-        require(num2 != 0, "Cannot divide by zero");
-        uint256 difference = (num1 > num2) ? (num1 - num2) : (num2 - num1);
-        uint256 percentage = (difference * 100) / num2;
-        return percentage;
-    }
+    // function calculatePercentageDifference(uint256 num1, uint256 num2) public pure returns (uint256) {
+    //     require(num2 != 0, "Cannot divide by zero");
+    //     uint256 difference = (num1 > num2) ? (num1 - num2) : (num2 - num1);
+    //     uint256 percentage = (difference * 100) / num2;
+    //     return percentage;
+    // }
 
     modifier validSwap(address _token){
         require(_token == address(token1) || _token == address(token2), "Invalid token type for this swap");
@@ -296,11 +300,11 @@ contract DynamicLiquidityPool{
 
         //burn the LP tokens that the user has redemeed for their share of liquidity pool reserves
         lptoken.burn(msg.sender, shares);
-    }
+    }  
 
-    function calculateSwap(uint countIn, uint inReserve, uint outReserve) public pure returns(uint amountOut){
+    function calculateSwap(uint countIn, uint inReserve, uint outReserve) public view returns(uint amountOut){
         //calculate amount of token in (with fee of 0.3%)
-        uint countInWithFee = (countIn * 997) / 1000;
+        uint countInWithFee = withFee(countIn);
         //dy = ydx / x + dx 
         amountOut =  (outReserve * countInWithFee) / (inReserve + countInWithFee );
     }
@@ -329,8 +333,7 @@ contract DynamicLiquidityPool{
         //check what token we are receiving
         bool isToken1 = (_token == address(token1));
         (ERC20 tokenIn, ERC20 tokenOut, uint inReserve, uint outReserve ) = isToken1? (token1, token2, token1_reserve, token2_reserve): (token2, token1, token2_reserve, token1_reserve);
-
-        if(calculateTimeDiff() || (recent_swaps +1) == 5){
+        if(calculateTimeDiff() || (recent_swaps +1) %5 == 0){
             uint256 newRatio = getChainlinkDataFeedLatestAnswer();
             shiftPoints(newRatio);
             calculateNewSwapFee();

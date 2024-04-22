@@ -38,6 +38,10 @@ async function arbitrage_calculation(external_ratio, pool, tokenIn, amountIn) {
     console.log("Sold token A externally for ", output_price)
     const profit = output_price - amountIn;
     console.log(`Total profit of ${profit} token B`);
+    const newInternalReserve1 = await pool.token1_reserve();
+    const newInternalReserve2 = await pool.token2_reserve();
+    const newInternalRatio = Number(newInternalReserve2) / Number(newInternalReserve1);
+    console.log('New internal ratio: ', newInternalRatio);
     return profit;
 
   }
@@ -88,7 +92,8 @@ await swap2.approve(liquidityPool, b_amount, {from: owner.address});
 await liquidityPool.addLiquidity(a_amount, b_amount,  0, { from: owner.address});  
 
 const external = 800/500; // Using BigInt for ratio
-const profit = await arbitrage_calculation(external, liquidityPool, 'B', 100n); // Use BigInt for amountIn
+
+const profit = await arbitrage_calculation(external, liquidityPool, 'B', 10000n); // Use BigInt for amountIn
 if (profit > 0n) {
   console.log('profitable trade!')
 } else {
