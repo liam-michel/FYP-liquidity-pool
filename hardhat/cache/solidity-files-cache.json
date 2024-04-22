@@ -268,8 +268,8 @@
       ]
     },
     "/Users/liammichel/Documents/FYP-liquidity-pool/hardhat/contracts/modifiedPool.sol": {
-      "lastModificationDate": 1713631791832,
-      "contentHash": "4332b657a6ecc8d34947ceefe7a1fb33",
+      "lastModificationDate": 1713752678940,
+      "contentHash": "65f11311a3cd74cc1fccca85e46abf22",
       "sourceName": "contracts/modifiedPool.sol",
       "solcConfig": {
         "version": "0.8.20",
@@ -303,7 +303,7 @@
         "0.8.20"
       ],
       "artifacts": [
-        "VariableLiquidityPool"
+        "DynamicLiquidityPool"
       ]
     },
     "/Users/liammichel/Documents/FYP-liquidity-pool/hardhat/contracts/liquiditypool.sol": {
@@ -451,42 +451,6 @@
       "versionPragmas": [],
       "artifacts": [
         "Ratios"
-      ]
-    },
-    "/Users/liammichel/Documents/FYP-liquidity-pool/hardhat/contracts/test.sol": {
-      "lastModificationDate": 1713559473617,
-      "contentHash": "b88968e7569a15b88d25943b09677980",
-      "sourceName": "contracts/test.sol",
-      "solcConfig": {
-        "version": "0.8.20",
-        "settings": {
-          "evmVersion": "paris",
-          "optimizer": {
-            "enabled": false,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [],
-      "versionPragmas": [
-        "^0.8.0"
-      ],
-      "artifacts": [
-        "PriceConsumer"
       ]
     },
     "/Users/liammichel/Documents/FYP-liquidity-pool/hardhat/contracts/transferContract.sol": {

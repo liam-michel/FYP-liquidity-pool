@@ -4,7 +4,6 @@ pragma solidity 0.8.20;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "./LpToken.sol";
-
 // 000000000000000000
 
 struct Deposit{
@@ -12,7 +11,7 @@ struct Deposit{
     uint lockPeriodEnd;
 }
 
-contract VariableLiquidityPool{
+contract DynamicLiquidityPool{
     uint public lockPeriod =  1 minutes / 2; 
     mapping(address => Deposit) deposits;
     address LPTOKEN_ADDRESS;
@@ -22,9 +21,12 @@ contract VariableLiquidityPool{
     uint public token1_reserve = 0;
     uint public token2_reserve = 0;
     uint public precision = 1e18;
-    uint baseFee = 3*10e15;
+    uint public baseFee = 3*10e15;
     uint[] private dataPoints;
-    uint lastCheckTime = block.timestamp;
+    uint private lastCheckTime = block.timestamp;
+    uint256 public lastFetchedExternalRatio = 0;
+    uint256 public average_external_ratio;
+    uint public recent_swaps = 0;
 
     constructor(address _t1, address _t2, address _lptoken){
         token1 = ERC20(_t1);
@@ -33,7 +35,14 @@ contract VariableLiquidityPool{
 
 
     }
-    function getChainlinkDataFeedLatestAnswer() public pure returns (uint256) {
+
+    //ONLY HERE FOR TESTING PURPOSES, NEEDS TO BE REMOVED BEFORE ACTUAL USE :D
+    function setExternalRatio(uint256 _ratio) public {
+    lastFetchedExternalRatio = _ratio;
+    }
+
+
+    function getChainlinkDataFeedLatestAnswer() public view returns (uint256) {
         // (
         //     /* uint80 roundID */,
         //     int answer,
@@ -42,8 +51,8 @@ contract VariableLiquidityPool{
         //     /*uint80 answeredInRound*/
         // ) = dataFeed.latestRoundData();
         // return answer;
-        return uint256(2000000000000000000);
-        //return uint256(5058822323789223);
+        // return uint256(2000000000000000000);
+        return lastFetchedExternalRatio;
     }
 
     function setReserve1(uint _reserve1) public  returns(uint){
@@ -70,44 +79,52 @@ contract VariableLiquidityPool{
 
 
     //tA / tB should be == the price feed
-    function calculateNewSwapFee() public view returns(string memory){
+    function calculateNewSwapFee() public returns(string memory){
         require(token1_reserve > 0 && token2_reserve > 0);
-        uint256 chainlinkRatio = uint256(getChainlinkDataFeedLatestAnswer());
-        uint ratio = getReserveRatio();
+        uint internal_ratio = getReserveRatio(); 
+        //calculate upper and
+        //lower bound for the internal ratio
+        //if our average external ratio deviates from this then we charge higher fee
 
-        uint upperBound = ratio * 1005 / 1000; // Multiply by 1.05 but adjusted for solidity's lack of decimal
-        uint lowerBound = ratio * 995 / 1000;  // Multiply by 0.95 adjusted for solidity
+        uint upperBound = internal_ratio * 1005 / 1000; // Multiply by 1.05 but adjusted for solidity's lack of decimal
+        uint lowerBound = internal_ratio * 995 / 1000;  // Multiply by 0.95 adjusted for solidity
 
 
-        if(chainlinkRatio >= lowerBound && chainlinkRatio <= upperBound){
+        if(average_external_ratio >= lowerBound && average_external_ratio <= upperBound){
+            baseFee = 3*10e15;
             return "Within ratio";
+
         }else{
+            baseFee = 10e16;
             return "Not within ratio";
         }
+
+        //try by increasing swap fee to 1% 
         
     
     }
         //function to calculate the time since last chainlink ratio fetch
     function calculateTimeDiff() private view returns(bool){
-        if(lastCheckTime - block.timestamp > 1 minutes){
+        if(( block.timestamp - lastCheckTime) > 1 minutes){
             return true;
         }
         return false;
     }
 
-    function calculateSMA() private view returns(uint256){
+    function calculateSMA() private{
         require(dataPoints.length>0);
         uint sum = 0;
         for(uint i= 0; i < dataPoints.length; i++){
             sum += dataPoints[i];
         }
-        return sum / dataPoints.length;
+        uint average = sum / dataPoints.length;
+        average_external_ratio = uint256(average);
     }
 
 
     //function for shifting the points in the array back
-    function shiftPoints(uint length, uint point) private returns(uint256){
-        if(length<5){
+    function shiftPoints(uint point) private{
+        if(dataPoints.length<5){
             dataPoints.push(point);
         }
         else{
@@ -116,7 +133,7 @@ contract VariableLiquidityPool{
             }
             dataPoints[dataPoints.length-1] = point;
         }
-        return calculateSMA();
+        calculateSMA();
     }
 
     function calculatePercentageDifference(uint256 num1, uint256 num2) public pure returns (uint256) {
@@ -312,6 +329,15 @@ contract VariableLiquidityPool{
         //check what token we are receiving
         bool isToken1 = (_token == address(token1));
         (ERC20 tokenIn, ERC20 tokenOut, uint inReserve, uint outReserve ) = isToken1? (token1, token2, token1_reserve, token2_reserve): (token2, token1, token2_reserve, token1_reserve);
+
+        if(calculateTimeDiff() || (recent_swaps +1) == 5){
+            uint256 newRatio = getChainlinkDataFeedLatestAnswer();
+            shiftPoints(newRatio);
+            calculateNewSwapFee();
+            recent_swaps = 0;
+        }
+        //swap logic here
+
         amountOut = calculateSwap(countIn, inReserve, outReserve);
         //transfer the 'inToken' in
         tokenIn.transferFrom(msg.sender, address(this), countIn);
@@ -319,6 +345,7 @@ contract VariableLiquidityPool{
         tokenOut.transfer(msg.sender, amountOut);
         //update the reserves to reflect new balances;
         updateReserves(token1.balanceOf(address(this)), token2.balanceOf(address(this)));
+        recent_swaps += 1;
 
     }
 

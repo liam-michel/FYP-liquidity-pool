@@ -1,10 +1,10 @@
 import {assert} from 'chai';
 import pkg from 'hardhat';
 const {ethers} = pkg;
-import { offChainSwapCalc } from '../helpers.js';
+import { onChainSwapCalc } from '../helpers.js';
 const LpTokenFactory = await ethers.getContractFactory("LpToken");
 const swapTokenFactory = await ethers.getContractFactory("SwapToken");
-const liquidityPoolFactory = await ethers.getContractFactory("VariableLiquidityPool");
+const liquidityPoolFactory = await ethers.getContractFactory("LiquidityPool");
 
 
 
@@ -128,19 +128,13 @@ describe("Liquidity Pool tests", () => {
     // amountOut =  (outReserve * countInWithFee) / (inReserve + countInWithFee );
     
     //start by checking fee calculation
-    const contractFee = await liquiditypool.amountWithFee(amountAIn);
-    const withFee = amountAIn * BigInt(997) / BigInt(1000);
-    const intermediate = BigInt(amountB * withFee);
-    const intermediate2 = BigInt(amountA + withFee);
-    const final = intermediate / intermediate2;
+
     const onChainSwap  = await liquiditypool.calculateSwap(amountAIn, amountA, amountB);
-    const offChainSwap = await offChainSwapCalc(amountAIn, 3, amountA, amountB)
+    const mockOnChainSwap = await onChainSwapCalc(amountAIn, 3, amountA, amountB)
     console.log('onchain-val ', onChainSwap);
-    console.log('off-chain   ', offChainSwap);
-    assert.equal(onChainSwap, offChainSwap);
+    console.log('off-chain   ', mockOnChainSwap);
+    assert.equal(onChainSwap, mockOnChainSwap);
 
-
-    
-  })
+  });
 
 })
