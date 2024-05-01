@@ -1,0 +1,3 @@
+notes for evaluating pool
+run both pools against same set of transactions / market movements
+

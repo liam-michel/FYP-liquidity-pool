@@ -22,6 +22,7 @@ contract LiquidityPool{
 
     uint public token1_reserve = 0;
     uint public token2_reserve = 0;
+    uint precision = 1e18;
 
     constructor(address _t1, address _t2, address _lptoken){
         token1 = ERC20(_t1);
@@ -60,6 +61,12 @@ contract LiquidityPool{
 
     function min(uint x, uint y) private pure returns (uint){
         return x<=y? x: y;
+    }
+    function getReserveRatio() public view returns(uint){  
+        require(token1_reserve> 0 && token2_reserve > 0 );
+        uint ratio = (token2_reserve * precision) / token1_reserve;
+        return ratio;
+
     }
 
     function updateReserves(uint _token1_reserve, uint _token2_reserve) private{
@@ -190,9 +197,10 @@ contract LiquidityPool{
         return countInWithFee;
     }
 
+
     function calculateSwap(uint countIn, uint inReserve, uint outReserve) public pure returns(uint amountOut){
         //calculate amount of token in (with fee of 0.3%)
-        uint countInWithFee = (countIn * 997) / 1000;
+        uint countInWithFee = (countIn * 9970) / 10000;
         //dy = ydx / x + dx 
         amountOut =  (outReserve * countInWithFee) / (inReserve + countInWithFee );
     }

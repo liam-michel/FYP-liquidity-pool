@@ -1,22 +1,22 @@
-import * as math from 'mathjs'
+import * as math from "mathjs";
 
-let x_0 = math.parse('x_0');
-let y_0 = math.parse('y_0');
-let P = math.parse('P');
-let dP = math.parse('dP');
-let dx = math.parse('dx');
+let x_0 = math.parse("x_0");
+let y_0 = math.parse("y_0");
+let P = math.parse("P");
+let dP = math.parse("dP");
+let dx = math.parse("dx");
 
-let profitFunction = math.parse('(y_0 / (x_0 + dx)) - (P - dP) * dx');
+let profitFunction = math.parse("(y_0 / (x_0 + dx)) - (P - dP) * dx");
 let derivative = math.derivative(profitFunction, dx);
 
 const givenValues = {
   x_0: 100, // Replace with the actual value of x_0
   y_0: 200, // Replace with the actual value of y_0
-  P: 1.5,   // Replace with the actual price P in the AMM
-  dP: 0.05  // Replace with the actual price difference dP
+  P: 1.5, // Replace with the actual price P in the AMM
+  dP: 0.05, // Replace with the actual price difference dP
 };
 
-const derivativeFunc = derivative.compile()
+const derivativeFunc = derivative.compile();
 
 function f(dx) {
   return derivativeFunc.evaluate({ ...givenValues, dx });
@@ -49,7 +49,9 @@ do {
 
 // Output the result
 if (iteration < maxIterations) {
-  console.log('Optimal dx:', newdx);
+  console.log("Optimal dx:", newdx);
 } else {
-  console.log('Failed to converge to a solution within the maximum number of iterations.');
+  console.log(
+    "Failed to converge to a solution within the maximum number of iterations."
+  );
 }
