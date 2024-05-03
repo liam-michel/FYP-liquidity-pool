@@ -81,9 +81,64 @@ const testOptimalXin = async () => {
   console.log("Total token B profit: ", profit);
 };
 
-const testOptimalXout = async () => {};
+//token A cheaper inside than outside, buy token A for token B from the pool and sell externally until 
+//the internal ratio rises to match the external one.
+const testOptimalXout = async () => {
+  const [swap1, swap2, lpToken, liquidityPool] = await setupPool();
+  const a_amount = await liquidityPool.token1_reserve();
+  const b_amount = await liquidityPool.token2_reserve();
+  const externalRatio = 2.2;
+  const oldInternalRatio = await liquidityPool.getReserveRatio();
 
-await testOptimalXin();
+  const product = a_amount * b_amount;
+  const optimalAmount = await optimalXout(
+    externalRatio,
+    liquidityPool,
+    a_amount,
+    b_amount
+
+  )  //optimalAmount is the optimal amount of A to buy from the pool
+  console.log("Optimal amount of X to remove from pool: ", optimalAmount);
+  //now calculate the amount of Y to add for this
+  //(x - dx) (y + dy) = k 
+  //we have new x value (x-dx);
+  //so new y = k / x-dx
+  const newX = BigNumber(a_amount) - BigNumber(optimalAmount);
+  const newY = BigNumber(product) / (newX)
+  const optY = BigInt(Math.floor(newY - BigNumber(b_amount)));
+  console.log("Optimal amount of y to add in: ", optY )
+  //try it
+  await swap2.mint(optY);
+  await swap2.approve(liquidityPool, optY);
+  await liquidityPool.swap(swap2, optY);
+  const newInternalRatio = await liquidityPool.getReserveRatio();
+  console.log("New Internal Ratio: ", newInternalRatio);
+
+};
+  
+//internal market has higher price for A => lower price for B 
+//Buy B from the pool for A until the pool price matches
+
+const testOptimalYin = async() => {
+  const [swap1, swap2, lpToken, liquidityPool] = await setupPool();
+  const a_amount = await liquidityPool.token1_reserve();
+  const b_amount = await liquidityPool.token2_reserve();
+  const externalRatio = 2.2;
+  const oldInternalRatio = await liquidityPool.getReserveRatio();
+  const product = a_amount * b_amount;
+
+  const optimal = await optimalYin(
+    externalRatio,
+    liquidityPool,
+    swap1, swap2);
+  
+  console.log(optimal);
+}
+
+// await testOptimalXin();
+// await testOptimalXout();
+
+await testOptimalYin();
 
 //buy A for B from external
 //sell A to pool until ratio matches
