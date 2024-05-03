@@ -168,4 +168,25 @@ describe("Liquidity Pool tests", () => {
     console.log("new tokens all: ", newTokensAll);
     assert.equal(oldTokensAll, newTokensAll);
   });
+  it("should perform equivalent alternating swaps", async () => {
+    const amountA = ethers.parseEther("50");
+    const amountB = ethers.parseEther("100");
+    await swap1.mint(amountA);
+    await swap2.mint(amountB);
+    //approve on swapTokens for liquidty pool to spend
+    await swap1.approve(liquiditypool, amountA);
+    await swap2.approve(liquiditypool, amountB);
+    await liquiditypool.addLiquidity(amountA, amountB, 0);
+    console.log("Initial A reserves", await liquiditypool.token1_reserve());
+    console.log("Initial B reserves", await liquiditypool.token2_reserve());
+    console.log("initial constant product of: ", amountA * amountB);
+    const [owner, second] = await ethers.getSigners();
+    //mint 50 of each token to second
+    const amountIn = ethers.parseEther("50");
+    const secondswap1 = swap1.connect(second);
+    const secondswap2 = swap2.connect(second);
+    const secondPool = liquiditypool.connect(second);
+    await secondswap1.mint(amountIn);
+    await secondswap2.mint(amountIn);
+  });
 });

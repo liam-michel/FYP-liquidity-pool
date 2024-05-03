@@ -1,11 +1,7 @@
 import pkg from "hardhat";
-import {
-  simulatePoissonProcess,
-  simulateBrownianMotion,
-} from "./evaluationHelpers.js";
+import BigNumber from "bignumber.js";
+import { simulatePoissonProcess, randomWalk } from "./evaluationHelpers.js";
 import { arbitrage_calculation } from "../helpers.js";
-import { Result } from "ethers";
-import { random } from "mathjs";
 const { ethers } = pkg;
 const { parseEther } = ethers;
 const SwapTokenFactory = await ethers.getContractFactory("SwapToken");
@@ -18,6 +14,7 @@ const DynamicLiquidityPoolFactory = await ethers.getContractFactory(
 function getRandomInt(min, max) {
   min = BigInt(Math.ceil(Number(min)));
   max = BigInt(Math.floor(Number(max)));
+
   return (
     BigInt(Math.floor(Math.random() * (Number(max) - Number(min) + 1))) + min
   );
@@ -28,20 +25,32 @@ const smartSwap = async (external_ratio, token1, token2, pool, signer) => {
   const token_symbol = await token_choice.symbol();
   const userBalance = await token_choice.balanceOf(signer.address);
   const amount = getRandomInt(userBalance / BigInt(2), userBalance);
-
   //now evaluate if there is arbitrage opportunity
   //fetch internal reserves to evaluate internal ratio
-  const token1_reserve = await pool.token1_reserve();
-  const token2_reserve = await pool.token2_reserve();
-  const internal_ratio = await pool.getReserveRatio();
-  console.log("Internal ratio: ", internal_ratio.toString());
+  const externalRatioScaled = BigInt(external_ratio * 1e18);
+
+  const doArbitrage = Math.random() > 0.5 ? true : false;
+  if (doArbitrage) {
+    await arbitrage_calculation(
+      externalRatioScaled,
+      pool,
+      token_symbol,
+      amount
+    );
+  } else {
+    //perform random swap
+    console.log("Executing a random swap");
+    await randomSwap(token1, token2, pool, signer);
+  }
 };
 
 const randomSwap = async (token1, token2, pool, signer) => {
   const token_choice = Math.random() > 0.5 ? token1 : token2;
   const token_symbol = await token_choice.symbol();
+  //console.log the token choice symbol
+  //console.log(`Swapping ${token_symbol} into the pool`);
   const userBalance = await token_choice.balanceOf(signer.address);
-  const amount = getRandomInt(userBalance / BigInt(2), userBalance);
+  const amount = getRandomInt(userBalance / BigInt(10), userBalance);
 
   //console.log(`Swapping ${amount} of ${token_symbol}`)
   //connect with current_signer
@@ -55,9 +64,12 @@ const randomSwap = async (token1, token2, pool, signer) => {
 const generateAmounts = (count, lower, upper) => {
   const amounts = [];
   for (let i = 0; i < count; i++) {
-    const amount = Math.floor(Math.random() * (upper - lower) + lower);
+    const amount =
+      BigInt(Math.floor(Math.random() * (Number(upper) - Number(lower) + 1))) +
+      BigInt(lower);
     amounts.push(amount);
   }
+
   return amounts;
 };
 
@@ -68,14 +80,14 @@ const mintTokensAll = async (token1, token2, signers) => {
     const current_token1 = token1.connect(current_signer);
     const current_token2 = token2.connect(current_signer);
     //mint 100 of token1 and token2 to them
-    await current_token1.mint(parseEther("10000"));
-    await current_token2.mint(parseEther("10000"));
+    await current_token1.mint(2000);
+    await current_token2.mint(2000);
   }
 };
 
 const setupLiquidityPool = async () => {
-  const swap1 = await SwapTokenFactory.deploy(0n, "SwapToken1", "SWP1");
-  const swap2 = await SwapTokenFactory.deploy(0n, "SwapToken2", "SWP2");
+  const swap1 = await SwapTokenFactory.deploy(0n, "SwapToken1", "A");
+  const swap2 = await SwapTokenFactory.deploy(0n, "SwapToken2", "B");
   const lpToken = await LpTokenFactory.deploy(0n, "LpToken", "LP");
   const liquidityPool = await LiquidityPoolFactory.deploy(
     swap1,
@@ -87,8 +99,8 @@ const setupLiquidityPool = async () => {
 };
 
 const setupDynamicLiquidityPool = async () => {
-  const swap1 = await SwapTokenFactory.deploy(0n, "SwapToken1", "SWP1");
-  const swap2 = await SwapTokenFactory.deploy(0n, "SwapToken2", "SWP2");
+  const swap1 = await SwapTokenFactory.deploy(0n, "SwapToken1", "A");
+  const swap2 = await SwapTokenFactory.deploy(0n, "SwapToken2", "B");
   const lpToken = await LpTokenFactory.deploy(0n, "LpToken", "LP");
   const liquidityPool = await DynamicLiquidityPoolFactory.deploy(
     swap1,
@@ -124,12 +136,22 @@ const addLiquidity = async (
   value1,
   value2
 ) => {
-  const amounts = generateAmounts(accounts.length, 1, 100);
+  const lowerBound = ethers.parseEther("10");
+  const upperBound = ethers.parseEther("100");
+  const amounts = generateAmounts(accounts.length, lowerBound, upperBound);
+  const reserve1 = await liquidityPool.token1_reserve();
+  const reserve2 = await liquidityPool.token2_reserve();
+  const ratio = reserve2 / reserve1;
+  console.log("Ratio: ", ratio.toString());
   console.log(amounts);
   for (let i = 0; i < accounts.length; i++) {
     const currentAmount = amounts[i];
+    console.log("here");
+
     const amountA = currentAmount;
-    const amountB = currentAmount * (value1 / value2);
+    console.log(amountA);
+    let amountB = new BigNumber(amountA).multipliedBy(ratio);
+    amountB = BigInt(amountB);
     const account = accounts[i];
     const current_swap1 = swap1.connect(account);
     const current_swap2 = swap2.connect(account);
@@ -164,7 +186,6 @@ const main = async () => {
   const sigma = 0.01; // Example volatility
   const dt = 1; // Time increment (e.g., days)
   const steps = 100; // Number of steps in the simulation
-
   const lambda = 5;
   const duration = 100;
   //setup regular Liquidity Pool
@@ -172,38 +193,31 @@ const main = async () => {
     await setupLiquidityPool();
   const [dynamicswap1, dynamicswap2, dynamiclpToken, dynamicPool] =
     await setupDynamicLiquidityPool();
-
   await seedLiquidities(regularswap1, regularswap2, regularPool);
   await seedLiquidities(dynamicswap1, dynamicswap2, dynamicPool);
-
-  const value1 = 20;
+  const value1 = 50;
   const transactionVolume = simulatePoissonProcess(lambda, duration);
-  const assetRatios = simulateBrownianMotion(10, 0, 1, 1, 200);
+  const assetRatios = randomWalk(1.8, 0.004, 200);
+  console.log(assetRatios);
   const value2 = assetRatios[0];
-
   console.log(assetRatios.length);
   console.log(transactionVolume.length);
-
   let regularDeposits = {}; //dictionary that will store array  [[amountA, priceA], [amountB, priceB]] for each user
   const accounts = await ethers.getSigners();
-
   const extraproviders = accounts.slice(1, 3);
-  //provide some amount of liquidity with these accounts
 
-  regularDeposits = await addLiquidity(
-    regularswap1,
-    regularswap2,
-    regularPool,
-    extraproviders,
-    regularDeposits,
-    value1,
-    value2
-  );
-
+  // //provide some amount of liquidity with these accounts
+  // regularDeposits = await addLiquidity(
+  //   regularswap1,
+  //   regularswap2,
+  //   regularPool,
+  //   extraproviders,
+  //   regularDeposits,
+  //   value1,
+  //   value2
+  // );
   console.log(regularDeposits);
-
-  // //deposits setup
-
+  // // //deposits setup
   const signers1 = accounts.slice(4, 10);
   const signers2 = accounts.slice(11, 17);
   //mint an amount of all tokens to each user
@@ -214,68 +228,69 @@ const main = async () => {
   console.log("Old reserve1 :", old_reserve1);
   console.log("Old reserve2: ", old_reserve2);
   calculateProduct(old_reserve1, old_reserve2);
-
   // // //run transactions on both pools while iterating over value ratios;
-
-  // for (let i = 0; i < assetRatios.length; i++) {
-  //   const currentRatio = assetRatios[i];
-  //   const currentVolume = transactionVolume[i];
-  //   const currentvalue2 = assetRatios[i];
-  //   for (let j = 0; j < currentVolume; j++) {
-  //     // console.log(j);
-  //     //pick a random value from signers
-  //     const randomIndex = Math.floor(Math.random() * signers1.length);
-  //     const account = signers1[randomIndex];
-  //     const current_swap1 = regularswap1.connect(account);
-  //     const current_swap2 = regularswap2.connect(account);
-  //     const current_liquidityPool = regularPool.connect(account);
-  //     await randomSwap(
-  //       current_swap1,
-  //       current_swap2,
-  //       current_liquidityPool,
-  //       account
-  //     );
-  //   }
-  // }
-  //grab reserves
-  const account = signers1[0];
-  const current_swap1 = regularswap1.connect(account);
-  const current_swap2 = regularswap2.connect(account);
-  const current_liquidityPool = regularPool.connect(account);
-  await current_swap1.mint(parseEther("100000000"));
-  for (let i = 0; i < 2; i++) {
-    await randomSwap(
-      current_swap1,
-      current_swap2,
-      current_liquidityPool,
-      account
-    );
+  for (let i = 0; i < assetRatios.length; i++) {
+    const currentRatio = assetRatios[i];
+    const currentVolume = transactionVolume[i];
+    const currentvalue2 = assetRatios[i];
+    for (let j = 0; j < currentVolume; j++) {
+      // console.log(j);
+      //pick a random value from signers
+      const randomIndex = Math.floor(Math.random() * signers1.length);
+      const account = signers1[randomIndex];
+      const current_swap1 = regularswap1.connect(account);
+      const current_swap2 = regularswap2.connect(account);
+      const current_liquidityPool = regularPool.connect(account);
+      await smartSwap(
+        currentRatio,
+        current_swap1,
+        current_swap2,
+        current_liquidityPool,
+        account
+      );
+      break;
+    }
+    break;
   }
-  const reserve1 = await regularPool.token1_reserve();
-  const reserve2 = await regularPool.token2_reserve();
-  calculateProduct(reserve1, reserve2);
-  console.log("Reserve1: ", reserve1.toString());
-  console.log("Reserve2: ", reserve2.toString());
-  const newValues = reserve1 * BigInt(2);
-  const newValuefixed = newValues + reserve2;
-  console.log("new reserve value is : ", newValuefixed.toString());
-
-  //remove liquidity account
-  const user = extraproviders[0];
-  //fetch current balance of both tokens
-  const oldBalanceA = await regularswap1.balanceOf(user);
-  const ondBalanceB = await regularswap2.balanceOf(user);
-  console.log("Old balance of A: ", oldBalanceA.toString());
-  console.log("Old balance of B: ", ondBalanceB.toString());
-  //fetch amount of shares, remove liquidity and then fetch new balances
-  const shares = await regularlpToken.balanceOf(user);
-  console.log("Shares: ", shares.toString());
-  const user_pool = regularPool.connect(user);
-  await user_pool.removeLiquidity(shares);
-  const newBalanceA = await regularswap1.balanceOf(user);
-  const newBalanceB = await regularswap2.balanceOf(user);
-  console.log("New balance of A: ", newBalanceA.toString());
-  console.log("New balance of B: ", newBalanceB.toString());
+  //grab reserves
+  // const account = signers1[0];
+  // const current_swap1 = regularswap1.connect(account);
+  // const current_swap2 = regularswap2.connect(account);
+  // const current_liquidityPool = regularPool.connect(account);
+  // await current_swap1.mint(parseEther("100000000"));
+  // await current_swap2.mint(parseEther("100000000"));
+  // for (let i = 0; i < 10; i++) {
+  //   await randomSwap(
+  //     current_swap1,
+  //     current_swap2,
+  //     current_liquidityPool,
+  //     account
+  //   );
+  // }
+  // const reserve1 = await regularPool.token1_reserve();
+  // const reserve2 = await regularPool.token2_reserve();
+  // calculateProduct(reserve1, reserve2);
+  // console.log("Reserve1: ", reserve1.toString());
+  // console.log("Reserve2: ", reserve2.toString());
+  // const newValues = reserve1 * BigInt(2);
+  // const newValuefixed = newValues + reserve2;
+  // console.log("new reserve value is : ", newValuefixed.toString());
+  // //remove liquidity account
+  // const user = extraproviders[0];
+  // //fetch current balance of both tokens
+  // const oldBalanceA = await regularswap1.balanceOf(user);
+  // const ondBalanceB = await regularswap2.balanceOf(user);
+  // console.log("Old balance of A: ", oldBalanceA.toString());
+  // console.log("Old balance of B: ", ondBalanceB.toString());
+  // //fetch amount of shares, remove liquidity and then fetch new balances
+  // const shares = await regularlpToken.balanceOf(user);
+  // console.log("Shares: ", shares.toString());
+  // const user_pool = regularPool.connect(user);
+  // await user_pool.removeLiquidity(shares);
+  // const newBalanceA = await regularswap1.balanceOf(user);
+  // const newBalanceB = await regularswap2.balanceOf(user);
+  // console.log("New balance of A: ", newBalanceA.toString());
+  // console.log("New balance of B: ", newBalanceB.toString());
 };
 
 await main();

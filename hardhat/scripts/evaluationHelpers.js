@@ -39,27 +39,21 @@ export function simulatePoissonProcess(lambda, duration) {
 
   return transactionCounts;
 }
-export function simulateBrownianMotion(initialValue, mu, sigma, dt, steps) {
-  let S = initialValue; // Starting asset ratio
-  const results = [S];
-  for (let i = 0; i < steps - 1; i++) {
-    let epsilon = generateNormal();
-    S += mu * dt + sigma * epsilon * Math.sqrt(dt);
-    results.push(S);
+export function randomWalk(initialRatio, volatility, steps) {
+  let currentRatio = initialRatio;
+  let ratios = [initialRatio];
+  for (let i = 0; i < steps; i++) {
+    // Random change could be more sophisticated based on different distributions
+    currentRatio *= Math.exp(volatility * (Math.random() - 0.5));
+    ratios.push(currentRatio);
   }
-
-  return results;
+  return ratios;
 }
 // const mu = 0.0001;     // Example drift
 // const sigma = 0.01;    // Example volatility
 // const dt = 1;          // Time increment (e.g., days)
 // const steps = 100;     // Number of steps in the simulation
 
-const mu = 0;
-const sigma = 1;
-const dt = 1;
-const steps = 1000;
-const brownian = simulateBrownianMotion(mu, sigma, dt, steps);
 // brownian.forEach((element) => {
 //   console.log(element);
 // });

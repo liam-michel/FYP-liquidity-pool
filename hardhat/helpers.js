@@ -29,9 +29,11 @@ export function writeToFile(filename, values) {
 
 export const externalBuyA = (amountIn, ratio) => {
   const scale = BigInt(1e18);
+  console.log("scale is: ", scale);
   const scaledIn = BigInt(amountIn) * scale;
-  const scaledRatio = BigInt(ratio * 1e18);
-  const amountOut = BigInt(scaledIn) / scaledRatio;
+  console.log("scaledIn: ", scaledIn);
+  const amountOut = BigInt(scaledIn) / ratio;
+  console.log("amountOut: ", amountOut);
   return amountOut;
 };
 
@@ -39,7 +41,7 @@ export const externalBuyA = (amountIn, ratio) => {
 export const externalSellA = (amountIn, ratio) => {
   const scale = BigInt(1e18);
   //ratio is a float so need to scale it
-  const scaledRatio = BigInt(Math.floor(1e18 * ratio));
+  const scaledRatio = BigInt(Math.floor(ratio));
 
   return (BigInt(amountIn) * scaledRatio) / scale;
 };
@@ -54,12 +56,13 @@ export const arbitrage_calculation = async (
   console.log("Token In: ", tokenIn);
   const reserve1 = await pool.token1_reserve();
   const reserve2 = await pool.token2_reserve();
-  const internal_ratio = Number(reserve2) / Number(reserve1); // Floor division
+  const internal_ratio = await pool.getReserveRatio();
   console.log("Internal ratio: ", internal_ratio);
   console.log("External ratio: ", external_ratio);
 
   // Internal market has a higher price for Token A: Buy A for B, sell it to the pool
   if (internal_ratio > external_ratio && tokenIn == "B") {
+    //solved opt
     console.log(
       "Token A is more expensive inside, buying A external and selling it to the pool "
     );
@@ -82,6 +85,7 @@ export const arbitrage_calculation = async (
   }
   //internal market has lower price for token A, so buy token A from pool and sell externally
   if (internal_ratio < external_ratio && tokenIn == "B") {
+    //solved opt
     console.log(
       "Token A is cheaper inside, buy token A from pool and sell externally"
     );

@@ -17,7 +17,6 @@ describe("Liquidity Pool tests", () => {
     await lptoken.transferOwnership(liquiditypool);
     const amountA = ethers.parseEther("500");
     const amountB = ethers.parseEther("1000");
-    console.log(typeof amountA);
     await swap1.mint(amountA);
     await swap2.mint(amountB);
     //approve on swapTokens for liquidty pool to spend
