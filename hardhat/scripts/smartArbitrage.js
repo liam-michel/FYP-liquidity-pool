@@ -20,6 +20,32 @@ function getRandomInt(min, max) {
   );
 }
 
+const figureOutArbitrage = async (
+  external_ratio,
+  token1,
+  token2,
+  pool,
+  userToken
+) => {
+  const internal_ratio = await pool.getReserveRatio();
+  const external_ratio_scaled = BigInt(external_ratio * 1e18);
+  const token1_reserve = await pool.token1_reserve();
+  const token2_reserve = await pool.token2_reserve();
+  console.log("External ratio: ", external_ratio_scaled);
+  console.log("Internal ratio: ", internal_ratio);
+  //A more expensive inside. Buy A external, sell to pool
+  if (internal_ratio > external_ratio && userToken == "B") {
+  }
+  //A cheaper inside, buy A from pool and sell externally
+  else if (internal_ratio < external_ratio && userToken == "B") {
+  } else if (internal_ratio > external_ratio && userToken == "A") {
+  }
+};
+
+const doArbitrage = async (external_ratio, token1, token2, pool, signer) => {
+  //figure out current arbitrage situation
+};
+
 const smartSwap = async (external_ratio, token1, token2, pool, signer) => {
   const token_choice = Math.random() > 0.5 ? token1 : token2;
   const token_symbol = await token_choice.symbol();
@@ -31,12 +57,7 @@ const smartSwap = async (external_ratio, token1, token2, pool, signer) => {
 
   const doArbitrage = Math.random() > 0.5 ? true : false;
   if (doArbitrage) {
-    await arbitrage_calculation(
-      externalRatioScaled,
-      pool,
-      token_symbol,
-      amount
-    );
+    await figureOutArbitrage(external_ratio, token1, token2, pool, signer);
   } else {
     //perform random swap
     console.log("Executing a random swap");
@@ -44,6 +65,8 @@ const smartSwap = async (external_ratio, token1, token2, pool, signer) => {
   }
 };
 
+//function for executing a random swap against the pool.
+//This function is meant to model a random trader coming and using the pool for a regular swap from A->B or B->A
 const randomSwap = async (token1, token2, pool, signer) => {
   const token_choice = Math.random() > 0.5 ? token1 : token2;
   const token_symbol = await token_choice.symbol();
