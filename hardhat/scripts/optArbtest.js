@@ -188,7 +188,7 @@ const testOptimalYout = async () => {
   return optX;
 };
 
-// await testOptimalXin();
+await testOptimalXin();
 console.log("\n");
 await testOptimalXout();
 console.log("\n");
