@@ -71,7 +71,7 @@ contract DynamicLiquidityPool{
 
     function getReserveRatio() public view returns(uint){  
         require(token1_reserve> 0 && token2_reserve > 0 );
-        uint ratio = (token1_reserve * precision) / token2_reserve;
+        uint ratio = (token2_reserve * precision) / token1_reserve;
         return ratio;
 
     }

@@ -21,8 +21,8 @@ describe("Modified", () => {
     await lptoken.transferOwnership(liquiditypool);
     const [owner] = await ethers.getSigners();
 
-    const amountA = ethers.parseEther("1000");
-    const amountB = ethers.parseEther("500");
+    const amountA = ethers.parseEther("500");
+    const amountB = ethers.parseEther("1000");
     console.log(typeof amountA);
     await swap1.mint(amountA);
     await swap2.mint(amountB);
@@ -36,6 +36,10 @@ describe("Modified", () => {
     const reserveRatio = await liquiditypool.getReserveRatio();
     console.log(reserveRatio);
   });
+  it('should calculate the reserve ratio correctly', async() => {
+    const reserveRatio = await liquiditypool.getReserveRatio();
+    assert.equal(reserveRatio, BigInt(2 * 1e18))
+  })
 
   it("should allow me to view and set the external ratio (for testing)", async () => {
     const [owner] = await ethers.getSigners();
