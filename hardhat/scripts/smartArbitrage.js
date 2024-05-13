@@ -9,6 +9,7 @@ import {
   optimalYin,
   optimalYout,
 } from "./optArbCalcs.js";
+import { electronMassDependencies } from "mathjs";
 const SwapTokenFactory = await ethers.getContractFactory("SwapToken");
 const LpTokenFactory = await ethers.getContractFactory("LpToken");
 const LiquidityPoolFactory = await ethers.getContractFactory("LiquidityPool");
@@ -472,13 +473,14 @@ const addLiquidityMultiplePools = async (
 };
 
 const calculateImpermanentLoss = async (
-  pool,
   deposits,
   token1,
   token2,
   ratio
 ) => {
-  const accounts = deposits.keys();
+  console.log('here')
+  console.log(deposits)
+  const accounts = Object.keys(deposits);
   for (const account of accounts) {
     const deposit = deposits[account];
     const amountA = deposit[0][0];
@@ -495,10 +497,15 @@ const calculateImpermanentLoss = async (
     const newValueA = BigNumber(newAmountA).multipliedBy(costA);
     const newValueB = BigNumber(newAmountB).multipliedBy(costB);
     const newTotal = BigNumber(newValueA).plus(newValueB);
-    console.log("Old total value: ", oldTotal);
-    console.log("New total value: ", newTotal);
-    const difference = BigNumber(newTotal).minus(oldTotal);
-  }
+    console.log("Old total value: ", oldTotal.toString());
+    console.log("New total value: ", newTotal.toString());
+    const difference = newTotal.minus(oldTotal);
+    if(difference.lt(0)){
+      console.log("Impermanent loss for account: ", difference.toString());
+    }else{
+      console.log("Gain for account: ", difference.toString());
+    }
+  };
 };
 
 const main = async () => {
@@ -513,7 +520,7 @@ const main = async () => {
   await seedLiquidities(dynamicswap1, dynamicswap2, dynamicPool);
   const value1 = 50;
   const transactionVolume = simulatePoissonProcess(lambda, duration);
-  const assetRatios = randomWalk(2.2, 0.004, 199);
+  const assetRatios = randomWalk(2, 0.004, 199);
   const initialRatio = assetRatios[0];
   const value2 = BigNumber(value1).multipliedBy(initialRatio);
   //console.log(assetRatios.length);
@@ -527,14 +534,37 @@ const main = async () => {
     [dynamicswap1, dynamicswap2],
   ];
   const pools = [regularPool, dynamicPool];
-  const deposits = await addLiquidityMultiplePools(
-    swaps,
-    pools,
-    providers,
-    initialRatio,
-    value1,
-    value2
-  );
+  const lpTokens = [regularlpToken, dynamiclpToken];
+  const oldReserve1 = await regularPool.token1_reserve();
+  const oldReserve2 = await regularPool.token2_reserve();
+  console.log("Old reserve1: ", oldReserve1.toString());  
+  console.log("Old reserve2: ", oldReserve2.toString());
+
+  // const deposits = await addLiquidityMultiplePools(
+  //   swaps,
+  //   pools,
+  //   providers,
+  //   initialRatio,
+  //   value1,
+  //   value2
+  // );
+  // console.log(deposits);
+
+  // add 50/100 to the pool
+  const newSigner = providers[0];
+  const newtoken1 = regularswap1.connect(newSigner);
+  const newtoken2 = regularswap2.connect(newSigner);
+  const newRegularPool = regularPool.connect(newSigner);
+  await newtoken1.mint(parseEther("500"));
+  await newtoken2.mint(parseEther("1000"));
+  await newtoken1.approve(newRegularPool, parseEther("500"));
+  await newtoken2.approve(newRegularPool, parseEther("1000"));
+  await newRegularPool.addLiquidity(parseEther("500"), parseEther("1000"), 5);
+
+  const reserve1Afterdeposit = await regularPool.token1_reserve();
+  const reserve2Afterdeposit = await regularPool.token2_reserve();
+  console.log("Reserve1 after deposit: ", reserve1Afterdeposit.toString());
+  console.log("Reserve2 after deposit: ", reserve2Afterdeposit.toString());
   //pick out deposits from pool1
 
   const signers1 = accounts.slice(5, 11);
@@ -544,31 +574,54 @@ const main = async () => {
   await mintTokensAll(dynamicswap1, dynamicswap2, signers2);
 
   //run same set of transactions on both pools
-  for (let i = 0; i < assetRatios.length; i++) {
-    const currentRatio = assetRatios[i];
-    const currentVolume = transactionVolume[i];
-    for (let j = 0; j < currentVolume; j++) {
-      // //console.log(j);
-      //pick a random value from signers
-      const randomIndex = Math.floor(Math.random() * signers1.length);
-      const account1 = signers1[randomIndex];
+  // for (let i = 0; i < assetRatios.length; i++) {
+  //   const currentRatio = assetRatios[i];
+  //   const currentVolume = transactionVolume[i];
+  //   for (let j = 0; j < currentVolume; j++) {
+  //     // //console.log(j);
+  //     //pick a random value from signers
+  //     const randomIndex = Math.floor(Math.random() * signers1.length);
+  //     const account1 = signers1[randomIndex];
 
-      const randomIndex2 = Math.floor(Math.random() * signers2.length);
-      const account2 = signers2[randomIndex2];
+  //     const randomIndex2 = Math.floor(Math.random() * signers2.length);
+  //     const account2 = signers2[randomIndex2];
 
-      await smartSwap(
-        currentRatio,
-        regularswap1,
-        regularswap2,
-        regularPool,
-        dynamicswap1,
-        dynamicswap2,
-        dynamicPool,
-        account1,
-        account2
-      );
-    }
-  }
-};
+  //     await smartSwap(
+  //       currentRatio,
+  //       regularswap1,
+  //       regularswap2,
+  //       regularPool,
+  //       dynamicswap1,
+  //       dynamicswap2,
+  //       dynamicPool,
+  //       account1,
+  //       account2
+  //     );
+  //   }
+  // }
+  //remove liquidity from the pool
+  // for(let i = 0; i < pools.length; i++){ 
+  //   const current_pool = pools[i];
+  //   const current_lpToken = lpTokens[i];
+  //   //remove liquidity from this pool for all providers
+  //   await removeLiquidity(current_pool, current_lpToken, providers);
+  // }
 
+  //withdraw liquidity one user 
+  const userLP = lpTokens[0].connect(providers[0]);
+  const balance = userLP.balanceOf(providers[0])
+  await newRegularPool.removeLiquidity(balance);
+  
+  const reserve1afterwithdraw = await regularPool.token1_reserve();
+  const reserve2afterwithdraw = await regularPool.token2_reserve();
+  console.log("Reserve1 after withdraw: ", reserve1afterwithdraw.toString());
+  console.log("Reserve2 after withdraw: ", reserve2afterwithdraw.toString());
+  const finalRatio = assetRatios[0]
+  console.log("first ratio: ", finalRatio)
+  //calculate loss / gain for the different pools
+  // for(let i = 0; i < pools.length; i++){
+  //   const deposit = deposits[i];
+  //   await calculateImpermanentLoss(deposit, swaps[i][0], swaps[i][1], finalRatio);
+  // };
+}
 await main();
