@@ -25,40 +25,48 @@ function getRandomInt(min, max) {
   );
 }
 
-const figureOutArbitrage = async (
+const executeArbitrage = async (
   external_ratio,
   token1,
   token2,
   liquidityPool,
-  userToken,
-  signer,
-  userBalance
+  userChoice,
+  signer
 ) => {
   const internal_ratio = await liquidityPool.getReserveRatio();
   const external_ratio_scaled = BigInt(external_ratio * 1e18);
   const token1_reserve = await liquidityPool.token1_reserve();
   const token2_reserve = await liquidityPool.token2_reserve();
+  //at start of each swap, mint 10% of reserves to the user
+  const mint1 = BigInt(Math.floor(BigNumber(token1_reserve).dividedBy(10)));
+  const mint2 = BigInt(Math.floor(BigNumber(token2_reserve).dividedBy(10)));
+  await token1.mint(mint1);
+  await token2.mint(mint2);
+
   const product = token1_reserve * token2_reserve;
-  console.log("External ratio: ", external_ratio_scaled);
-  console.log("Internal ratio: ", internal_ratio);
 
   const oldABalance = await token1.balanceOf(signer);
   const oldBBalance = await token2.balanceOf(signer);
-  console.log("Old A balance: ", oldABalance);
-  console.log("Old B balance: ", oldBBalance);
+  //console.log("Old token A balance: ", oldABalance);
+  //console.log("Old token B balance: ", oldBBalance);
+  const down_internal_ratio = BigNumber(internal_ratio).dividedBy(1e18);
+  //console.log("Internal ratio: ", down_internal_ratio);
+  //console.log("External ratio: ", external_ratio);
+  const userToken = await userChoice.symbol();
+  const userBalance = await userChoice.balanceOf(signer);
 
   //user has B
   //A more expensive inside. Buy A external, sell to pool
   if (internal_ratio > external_ratio_scaled && userToken == "B") {
     //user has B so we buy A externally and sell to the pool
-    console.log('internal_ratio > external_ratio && userToken == "B"');
+    //console.log('internal_ratio > external_ratio && userToken == "B"');
     const optimalAmountA = await optimalXin(
       external_ratio,
       liquidityPool,
       token1,
       token2
     );
-    console.log("Optimal amount of A to swap into the pool: ", optimalAmountA);
+    //console.log("Optimal amount of A to swap into the pool: ", optimalAmountA);
     //purchase this amount of the token from the external market
     const optimalB = BigInt(
       Math.floor(BigNumber(optimalAmountA).multipliedBy(external_ratio))
@@ -66,13 +74,13 @@ const figureOutArbitrage = async (
     //check if the user balance is < the optimal amount
     let chosenAmount;
     if (userBalance < optimalB) {
-      console.log("User balance is less than the optimal amount");
+      //console.log("User balance is less than the optimal amount");
       chosenAmount = getRandomInt(userBalance / BigInt(2), userBalance);
       //pick a value that is between userBalance /2 , userBalance
     } else {
       chosenAmount = getRandomInt(userBalance / BigInt(2), optimalB);
     }
-
+    //console.log("chosenAmount: ", chosenAmount);
     //purchase the amount of the token from the external market
     const amountAExternal = BigInt(
       Math.floor(BigNumber(chosenAmount).dividedBy(external_ratio))
@@ -84,12 +92,13 @@ const figureOutArbitrage = async (
     await liquidityPool.swap(token1, amountAExternal);
     const newBBalance = await token2.balanceOf(signer);
     const profit = newBBalance - oldBBalance;
-    console.log("Total token B profit: ", profit);
+    //console.log("Total token B profit: ", profit);
+    return true;
   }
 
   //A cheaper inside the pool, buy from the pool and sell external
   else if (internal_ratio < external_ratio_scaled && userToken == "B") {
-    console.log('internal_ratio < external_ratio_scaled && userToken == "B"');
+    //console.log('internal_ratio < external_ratio_scaled && userToken == "B"');
     const optimalB = await optimalXout(
       external_ratio,
       liquidityPool,
@@ -99,16 +108,18 @@ const figureOutArbitrage = async (
     const newX = BigNumber(token1_reserve) - BigNumber(optimalB);
     const newY = BigNumber(product) / newX;
     const optY = BigInt(Math.floor(newY - BigNumber(token2_reserve)));
-    console.log("Optimal amount of y to add in: ", optY);
+    //console.log("Optimal amount of y to add in: ", optY);
 
     let chosenAmount;
 
     if (userBalance < optY) {
-      console.log("User balance is less than the optimal amount");
+      //console.log("User balance is less than the optimal amount");
       chosenAmount = getRandomInt(userBalance / BigInt(2), userBalance);
     } else {
       chosenAmount = getRandomInt(userBalance / BigInt(2), optY);
     }
+    //console.log("chosenAmount: ", chosenAmount);
+
     //now with chosen amount of Y, buy A from the pool
     await token2.approve(liquidityPool, chosenAmount);
     await liquidityPool.swap(token2, chosenAmount);
@@ -123,12 +134,13 @@ const figureOutArbitrage = async (
     //sell the token A for token B (to external market) (do a conversion);
     const newBBalance = await token2.balanceOf(signer);
     const profit = newBBalance - oldBBalance;
-    console.log("Total token B profit: ", profit);
+    //console.log("Total token B profit: ", profit);
+    return true;
   }
 
   //Buy Token B external, sell to the pool
   else if (internal_ratio < external_ratio_scaled && userToken == "A") {
-    console.log('internal_ratio < external_ratio_scaled && userToken == "A"');
+    //console.log('internal_ratio < external_ratio_scaled && userToken == "A"');
     const optimalB = await optimalYin(
       external_ratio,
       liquidityPool,
@@ -142,6 +154,8 @@ const figureOutArbitrage = async (
     } else {
       chosenAmount = getRandomInt(userBalance / BigInt(2), optimalB);
     }
+    //console.log("chosenAmount: ", chosenAmount);
+
     const amountBExternal = BigInt(
       Math.floor(BigNumber(chosenAmount).multipliedBy(external_ratio))
     );
@@ -151,23 +165,24 @@ const figureOutArbitrage = async (
     await liquidityPool.swap(token2, amountBExternal);
     const newABalance = await token1.balanceOf(signer);
     const profit = newABalance - oldABalance;
-    console.log("Total token A profit: ", profit);
+    //console.log("Total token A profit: ", profit);
+    return true;
   }
 
   //Higher A, lower B internal. Buy B from the pool and sell external
   else if (internal_ratio > external_ratio_scaled && userToken == "A") {
-    console.log('internal_ratio > external_ratio_scaled && userToken == "A"');
+    //console.log('internal_ratio > external_ratio_scaled && userToken == "A"');
     const optimalB = await optimalYout(
       external_ratio,
       liquidityPool,
       token1,
       token2
     );
-    console.log("Optimal amount of Y to swap out: ", optimalB);
+    //console.log("Optimal amount of Y to swap out: ", optimalB);
     const newB = BigNumber(token2_reserve) - BigNumber(optimalB);
     const newA = BigNumber(product) / newB;
     const optA = BigInt(Math.floor(newA - BigNumber(token1_reserve)));
-    console.log("Amount of X to put in: ", optA);
+    //console.log("Amount of X to put in: ", optA);
     let chosenAmount;
 
     if (userBalance < optA) {
@@ -175,6 +190,8 @@ const figureOutArbitrage = async (
     } else {
       chosenAmount = getRandomInt(userBalance / BigInt(2), optA);
     }
+    //console.log("chosenAmount: ", chosenAmount);
+
     await token1.approve(liquidityPool, chosenAmount);
     await liquidityPool.swap(token1, chosenAmount);
     const new_bbal = await token2.balanceOf(signer);
@@ -188,56 +205,113 @@ const figureOutArbitrage = async (
 
     //sell the token B
     const newABalance = await token1.balanceOf(signer);
-    console.log("New A balance: ", newABalance);
+    //console.log("New A balance: ", newABalance);
     const profit = newABalance - oldABalance;
-    console.log("Total token A profit: ", profit);
+    //console.log("Total token A profit: ", profit);
+    return true;
   }
+  return false;
 };
 
-const smartSwap = async (external_ratio, regular1, regular2, regularPool, dynamic1, dynamic2, dynamicPool, signer1, signer2) => {
-  const regular_choice = Math.random() > 0.5 ? regular1: regular2;
-  const regular_symbol = await regular_choice.symbol();
+const smartSwap = async (
+  external_ratio,
+  regular1,
+  regular2,
+  regularPool,
+  dynamic1,
+  dynamic2,
+  dynamicPool,
+  signer1,
+  signer2
+) => {
+  //connect to token with relevant signers
+  regular1 = regular1.connect(signer1);
+  regular2 = regular2.connect(signer1);
+  dynamic1 = dynamic1.connect(signer2);
+  dynamic2 = dynamic2.connect(signer2);
+  regularPool = regularPool.connect(signer1);
+  dynamicPool = dynamicPool.connect(signer2);
+
+  const regular_choice = Math.random() > 0.5 ? regular1 : regular2;
+  const dynamic_choice = regular_choice == regular1 ? dynamic1 : dynamic2;
+
   //now evaluate if there is arbitrage opportunity
   //fetch internal reserves to evaluate internal ratio
 
-  const doArbitrage = 0.7 > 0.5 ? true : false;
+  const doArbitrage = Math.random() > 0.5 ? true : false;
   if (doArbitrage) {
-    const success = await figureOutArbitrage(
+    //console.log("regular pool swap");
+    const success1 = await executeArbitrage(
       external_ratio,
       regular1,
       regular2,
       regularPool,
-      regular_symbol,
+      regular_choice,
       signer1
     );
-    // if(!success){
-    //   //do a random swap if no arbitrage opportunity found / exploited
-    //   await randomSwap()
-    // }
+    if (!success1) {
+      //do a random swap if no arbitrage opportunity found / exploited
+      await randomSwapBoth(
+        regularPool,
+        regular_choice,
+        dynamicPool,
+        dynamic_choice,
+        signer1,
+        signer2
+      );
+    }
+    //console.log("dynamic pool swap");
+    const success2 = await executeArbitrage(
+      external_ratio,
+      dynamic1,
+      dynamic2,
+      dynamicPool,
+      dynamic_choice,
+      signer2
+    );
+    if (!success2) {
+      //do a random swap if no arbitrage opportunity found / exploited
+      await randomSwapBoth(
+        regularPool,
+        regular_choice,
+        dynamicPool,
+        dynamic_choice,
+        signer1,
+        signer2
+      );
+    }
   } else {
     //perform random swap
-    console.log("Executing a random swap");
-    await randomSwap(token1, token2, pool, signer);
+    //console.log("Executing a random swap");
+    await randomSwapBoth(
+      regularPool,
+      regular_choice,
+      dynamicPool,
+      dynamic_choice,
+      signer1,
+      signer2
+    );
   }
 };
 
-//function for executing a random swap against the pool.
-//This function is meant to model a random trader coming and using the pool for a regular swap from A->B or B->A
-const randomSwap = async (token1, token2, pool, signer) => {
-  const token_choice = Math.random() > 0.5 ? token1 : token2;
-  const token_symbol = await token_choice.symbol();
-  //console.log the token choice symbol
-  //console.log(`Swapping ${token_symbol} into the pool`);
-  const userBalance = await token_choice.balanceOf(signer.address);
-  const amount = getRandomInt(userBalance / BigInt(10), userBalance);
-
-  //console.log(`Swapping ${amount} of ${token_symbol}`)
-  //connect with current_signer
-  const current_pool = pool.connect(signer);
-  const current_token_choice = token_choice.connect(signer);
-
-  await current_token_choice.approve(current_pool, amount);
-  await current_pool.swap(current_token_choice, amount);
+const randomSwapBoth = async (
+  regularPool,
+  regularChoice,
+  dynamicPool,
+  dynamicChoice,
+  signer1,
+  signer2
+) => {
+  const balance1 = await regularChoice.balanceOf(signer1);
+  const balance2 = await dynamicChoice.balanceOf(signer2);
+  const amount1 = getRandomInt(balance1 / BigInt(10), balance1);
+  const amount2 = getRandomInt(balance2 / BigInt(10), balance2);
+  //approve transfers
+  await regularChoice.approve(regularPool, amount1);
+  await dynamicChoice.approve(dynamicPool, amount2);
+  //swap
+  await regularPool.swap(regularChoice, amount1);
+  await dynamicPool.swap(dynamicChoice, amount2);
 };
 
 const generateAmounts = (count, lower, upper) => {
@@ -259,8 +333,9 @@ const mintTokensAll = async (token1, token2, signers) => {
     const current_token1 = token1.connect(current_signer);
     const current_token2 = token2.connect(current_signer);
     //mint 100 of token1 and token2 to them
-    await current_token1.mint(2000);
-    await current_token2.mint(2000);
+
+    await current_token1.mint(parseEther("5000"));
+    await current_token2.mint(parseEther("5000"));
   }
 };
 
@@ -291,8 +366,8 @@ const setupDynamicLiquidityPool = async () => {
 };
 
 const seedLiquidities = async (swap1, swap2, liquidityPool) => {
-  const initialA = parseEther("50000");
-  const initialB = parseEther("100000");
+  const initialA = parseEther("500000");
+  const initialB = parseEther("1000000");
   await swap1.mint(initialA);
   await swap2.mint(initialB);
 
@@ -302,51 +377,8 @@ const seedLiquidities = async (swap1, swap2, liquidityPool) => {
 };
 const calculateProduct = (reserve1, reserve2) => {
   const product = reserve1 * reserve2;
-  console.log("Product is :", product);
+  //console.log("Product is :", product);
   return product;
-};
-
-const addLiquidity = async (
-  swap1,
-  swap2,
-  liquidityPool,
-  accounts,
-  deposits,
-  value1,
-  value2
-) => {
-  const lowerBound = ethers.parseEther("10");
-  const upperBound = ethers.parseEther("100");
-  const amounts = generateAmounts(accounts.length, lowerBound, upperBound);
-  const reserve1 = await liquidityPool.token1_reserve();
-  const reserve2 = await liquidityPool.token2_reserve();
-  const ratio = reserve2 / reserve1;
-  console.log("Ratio: ", ratio.toString());
-  for (let i = 0; i < accounts.length; i++) {
-    const currentAmount = amounts[i];
-    console.log("here");
-
-    const amountA = currentAmount;
-    let amountB = new BigNumber(amountA).multipliedBy(ratio);
-    amountB = BigInt(amountB);
-    const account = accounts[i];
-    const current_swap1 = swap1.connect(account);
-    const current_swap2 = swap2.connect(account);
-    const current_liquidityPool = liquidityPool.connect(account);
-    await current_swap1.mint(amountA);
-    await current_swap2.mint(amountB);
-
-    await current_swap1.approve(liquidityPool, amountA);
-    await current_swap2.approve(liquidityPool, amountB);
-    await current_liquidityPool.addLiquidity(amountA, amountB, 0);
-    //calculate values of liquidity at deposit time
-
-    deposits[account.address] = [
-      [amountA, value1],
-      [amountB, value2],
-    ];
-  }
-  return deposits;
 };
 
 const removeLiquidity = async (liquidityPool, lptoken, accounts) => {
@@ -358,80 +390,184 @@ const removeLiquidity = async (liquidityPool, lptoken, accounts) => {
   }
 };
 
+const addLiquidityForPool = async (
+  swap1,
+  swap2,
+  liquidityPool,
+  account,
+  amountA,
+  amountB,
+  valueA,
+  valueB
+) => {
+  const current_swap1 = swap1.connect(account);
+  const current_swap2 = swap2.connect(account);
+  const current_liquidityPool = liquidityPool.connect(account);
+
+  await current_swap1.mint(amountA);
+  await current_swap2.mint(amountB);
+  await current_swap1.approve(liquidityPool, amountA);
+  await current_swap2.approve(liquidityPool, amountB);
+
+  await current_liquidityPool.addLiquidity(amountA, amountB, 5);
+  //calculate value of amountA and amountB according to external ratio
+  const newDeposit = [
+    [amountA, valueA],
+    [amountB, valueB],
+  ];
+  return newDeposit;
+
+  //add the deposit to the deposits dictionary
+};
+
+const addLiquidityMultiplePools = async (
+  swaps,
+  pools,
+  accounts,
+  ratio,
+  valueA,
+  valueB
+) => {
+  //generate some amounts
+  //console.log("value of token A: ", valueA);
+  //console.log("value of token B: ", valueB);
+  const lowerBound = ethers.parseEther("10");
+  const upperBound = ethers.parseEther("100");
+  const amounts = generateAmounts(accounts.length, lowerBound, upperBound);
+  let all_deposits = {};
+  //console.log(accounts.length);
+  //console.log(pools.length);
+  //iterate over pools and then accounts
+  for (let i = 0; i < pools.length; i++) {
+    const current_pool = pools[i];
+    const current_swap1 = swaps[i][0];
+    const current_swap2 = swaps[i][1];
+    //create a new deposits subdictionary for each pool
+    let pool_deposits = {};
+    for (let j = 0; j < accounts.length; j++) {
+      const current_account = accounts[j];
+      const current_amount = amounts[j];
+      const current_pool_ratio = await current_pool.getReserveRatio();
+      const down_ratio = BigNumber(current_pool_ratio).dividedBy(1e18);
+      const amountA = current_amount;
+      const amountB = BigInt(
+        Math.floor(BigNumber(amountA).multipliedBy(down_ratio))
+      );
+      const account_deposit = await addLiquidityForPool(
+        current_swap1,
+        current_swap2,
+        current_pool,
+        current_account,
+        amountA,
+        amountB,
+        valueA,
+        valueB
+      );
+      pool_deposits[current_account.address] = account_deposit;
+    }
+    all_deposits[i] = pool_deposits;
+  }
+
+  return all_deposits;
+};
+
+const calculateImpermanentLoss = async (
+  pool,
+  deposits,
+  token1,
+  token2,
+  ratio
+) => {
+  const accounts = deposits.keys();
+  for (const account of accounts) {
+    const deposit = deposits[account];
+    const amountA = deposit[0][0];
+    const amountB = deposit[1][0];
+    const costA = deposit[0][1];
+    const costB = deposit[1][1];
+    const valueA = BigNumber(amountA).multipliedBy(costA);
+    const valueB = BigNumber(amountB).multipliedBy(costB);
+    const oldTotal = BigNumber(valueA).plus(valueB);
+
+    //calculate new value of their deposit
+    const newAmountA = await token1.balanceOf(account);
+    const newAmountB = await token2.balanceOf(account);
+    const newValueA = BigNumber(newAmountA).multipliedBy(costA);
+    const newValueB = BigNumber(newAmountB).multipliedBy(costB);
+    const newTotal = BigNumber(newValueA).plus(newValueB);
+    console.log("Old total value: ", oldTotal);
+    console.log("New total value: ", newTotal);
+    const difference = BigNumber(newTotal).minus(oldTotal);
+  }
+};
+
 const main = async () => {
-  const mu = 0.0001; // Example drift
-  const sigma = 0.01; // Example volatility
-  const dt = 1; // Time increment (e.g., days)
-  const steps = 100; // Number of steps in the simulation
   const lambda = 5;
-  const duration = 100;
+  const duration = 200;
   //setup regular Liquidity Pool
   const [regularswap1, regularswap2, regularlpToken, regularPool] =
     await setupLiquidityPool();
   const [dynamicswap1, dynamicswap2, dynamiclpToken, dynamicPool] =
-    await setupDynamicLiquidityPool();
+    await setupLiquidityPool();
   await seedLiquidities(regularswap1, regularswap2, regularPool);
   await seedLiquidities(dynamicswap1, dynamicswap2, dynamicPool);
   const value1 = 50;
   const transactionVolume = simulatePoissonProcess(lambda, duration);
-  const assetRatios = randomWalk(1.8, 0.004, 200);
-  const value2 = assetRatios[0];
-  console.log(assetRatios.length);
-  console.log(transactionVolume.length);
-  let regularDeposits = {}; //dictionary that will store array  [[amountA, priceA], [amountB, priceB]] for each user
-  const accounts = await ethers.getSigners();
-  const extraproviders = accounts.slice(1, 3);
+  const assetRatios = randomWalk(2.2, 0.004, 199);
+  const initialRatio = assetRatios[0];
+  const value2 = BigNumber(value1).multipliedBy(initialRatio);
+  //console.log(assetRatios.length);
+  //console.log(transactionVolume.length);
 
-  // //provide some amount of liquidity with these accounts
-  regularDeposits = await addLiquidity(
-    regularswap1,
-    regularswap2,
-    regularPool,
-    extraproviders,
-    regularDeposits,
+  const accounts = await ethers.getSigners();
+  const providers = accounts.slice(1, 5);
+
+  const swaps = [
+    [regularswap1, regularswap2],
+    [dynamicswap1, dynamicswap2],
+  ];
+  const pools = [regularPool, dynamicPool];
+  const deposits = await addLiquidityMultiplePools(
+    swaps,
+    pools,
+    providers,
+    initialRatio,
     value1,
     value2
   );
-  console.log(regularDeposits);
-  // // //deposits setup
-  const signers1 = accounts.slice(4, 10);
+  //pick out deposits from pool1
+
+  const signers1 = accounts.slice(5, 11);
   const signers2 = accounts.slice(11, 17);
   //mint an amount of all tokens to each user
   await mintTokensAll(regularswap1, regularswap2, signers1);
   await mintTokensAll(dynamicswap1, dynamicswap2, signers2);
-  const old_reserve1 = await regularPool.token1_reserve();
-  const old_reserve2 = await regularPool.token2_reserve();
-  console.log("Old reserve1 :", old_reserve1);
-  console.log("Old reserve2: ", old_reserve2);
-  calculateProduct(old_reserve1, old_reserve2);
-  // // //run transactions on both pools while iterating over value ratios;
+
+  //run same set of transactions on both pools
   for (let i = 0; i < assetRatios.length; i++) {
     const currentRatio = assetRatios[i];
     const currentVolume = transactionVolume[i];
-    const currentvalue2 = assetRatios[i];
     for (let j = 0; j < currentVolume; j++) {
-      // console.log(j);
+      // //console.log(j);
       //pick a random value from signers
       const randomIndex = Math.floor(Math.random() * signers1.length);
-      const account = signers1[randomIndex];
-      const regular = regularswap1.connect(account);
-      const current_swap2 = regularswap2.connect(account);
-      const current_liquidityPool = regularPool.connect(account);
+      const account1 = signers1[randomIndex];
 
       const randomIndex2 = Math.floor(Math.random() * signers2.length);
       const account2 = signers2[randomIndex2];
 
-
       await smartSwap(
         currentRatio,
-        current_swap1,
-        current_swap2,
-        current_liquidityPool,
-        account
+        regularswap1,
+        regularswap2,
+        regularPool,
+        dynamicswap1,
+        dynamicswap2,
+        dynamicPool,
+        account1,
+        account2
       );
-      break;
     }
-    break;
   }
 };
 
