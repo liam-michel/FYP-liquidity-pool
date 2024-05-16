@@ -1,9 +1,84 @@
 {
   "_format": "hh-sol-cache-2",
   "files": {
-    "/Users/liammichel/Documents/FYP-liquidity-pool/hardhat/contracts/LpToken.sol": {
-      "lastModificationDate": 1713745330132,
-      "contentHash": "61bb511ecc6ee68568e8f099d1edf2f1",
+    "C:\\Users\\liamd\\Documents\\FYP-liquidity-pool\\hardhat\\contracts\\helloWorld.sol": {
+      "lastModificationDate": 1714588530672,
+      "contentHash": "1fdeab716b7bb4b284d87c987417de74",
+      "sourceName": "contracts/helloWorld.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "0.8.20"
+      ],
+      "artifacts": [
+        "helloworld"
+      ]
+    },
+    "C:\\Users\\liamd\\Documents\\FYP-liquidity-pool\\hardhat\\contracts\\liquiditypool.sol": {
+      "lastModificationDate": 1714529891298,
+      "contentHash": "f657ca05d6039673f1ae368d19ff5deb",
+      "sourceName": "contracts/liquiditypool.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "@openzeppelin/contracts/token/ERC20/ERC20.sol",
+        "./LpToken.sol"
+      ],
+      "versionPragmas": [
+        "0.8.20"
+      ],
+      "artifacts": [
+        "LiquidityPool"
+      ]
+    },
+    "C:\\Users\\liamd\\Documents\\FYP-liquidity-pool\\hardhat\\contracts\\LpToken.sol": {
+      "lastModificationDate": 1713917424364,
+      "contentHash": "7e7deb348cfc8329921ddc3d3e9fb0b6",
       "sourceName": "contracts/LpToken.sol",
       "solcConfig": {
         "version": "0.8.20",
@@ -40,46 +115,8 @@
         "LpToken"
       ]
     },
-    "/Users/liammichel/Documents/FYP-liquidity-pool/hardhat/node_modules/@openzeppelin/contracts/access/Ownable.sol": {
-      "lastModificationDate": 1713460455895,
-      "contentHash": "d3c790edc9ccf808a17c5a6cd13614fd",
-      "sourceName": "@openzeppelin/contracts/access/Ownable.sol",
-      "solcConfig": {
-        "version": "0.8.20",
-        "settings": {
-          "evmVersion": "paris",
-          "optimizer": {
-            "enabled": false,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [
-        "../utils/Context.sol"
-      ],
-      "versionPragmas": [
-        "^0.8.20"
-      ],
-      "artifacts": [
-        "Ownable"
-      ]
-    },
-    "/Users/liammichel/Documents/FYP-liquidity-pool/hardhat/node_modules/@openzeppelin/contracts/token/ERC20/ERC20.sol": {
-      "lastModificationDate": 1713460455887,
+    "C:\\Users\\liamd\\Documents\\FYP-liquidity-pool\\hardhat\\node_modules\\@openzeppelin\\contracts\\token\\ERC20\\ERC20.sol": {
+      "lastModificationDate": 1714590868278,
       "contentHash": "c6375ef25e84c90b3d15f9ec4eef218f",
       "sourceName": "@openzeppelin/contracts/token/ERC20/ERC20.sol",
       "solcConfig": {
@@ -119,8 +156,46 @@
         "ERC20"
       ]
     },
-    "/Users/liammichel/Documents/FYP-liquidity-pool/hardhat/node_modules/@openzeppelin/contracts/utils/Context.sol": {
-      "lastModificationDate": 1713460455885,
+    "C:\\Users\\liamd\\Documents\\FYP-liquidity-pool\\hardhat\\node_modules\\@openzeppelin\\contracts\\access\\Ownable.sol": {
+      "lastModificationDate": 1714590868561,
+      "contentHash": "d3c790edc9ccf808a17c5a6cd13614fd",
+      "sourceName": "@openzeppelin/contracts/access/Ownable.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../utils/Context.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "Ownable"
+      ]
+    },
+    "C:\\Users\\liamd\\Documents\\FYP-liquidity-pool\\hardhat\\node_modules\\@openzeppelin\\contracts\\utils\\Context.sol": {
+      "lastModificationDate": 1714590868151,
       "contentHash": "67bfbc07588eb8683b3fd8f6f909563e",
       "sourceName": "@openzeppelin/contracts/utils/Context.sol",
       "solcConfig": {
@@ -155,8 +230,8 @@
         "Context"
       ]
     },
-    "/Users/liammichel/Documents/FYP-liquidity-pool/hardhat/node_modules/@openzeppelin/contracts/interfaces/draft-IERC6093.sol": {
-      "lastModificationDate": 1713460455885,
+    "C:\\Users\\liamd\\Documents\\FYP-liquidity-pool\\hardhat\\node_modules\\@openzeppelin\\contracts\\interfaces\\draft-IERC6093.sol": {
+      "lastModificationDate": 1714590868186,
       "contentHash": "4aefc698f77ecbace7f401257dfe182d",
       "sourceName": "@openzeppelin/contracts/interfaces/draft-IERC6093.sol",
       "solcConfig": {
@@ -193,8 +268,44 @@
         "IERC721Errors"
       ]
     },
-    "/Users/liammichel/Documents/FYP-liquidity-pool/hardhat/node_modules/@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol": {
-      "lastModificationDate": 1713460455892,
+    "C:\\Users\\liamd\\Documents\\FYP-liquidity-pool\\hardhat\\node_modules\\@openzeppelin\\contracts\\token\\ERC20\\IERC20.sol": {
+      "lastModificationDate": 1714590868472,
+      "contentHash": "5517c8678c18eb1a8ba58810e7ca39ca",
+      "sourceName": "@openzeppelin/contracts/token/ERC20/IERC20.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "IERC20"
+      ]
+    },
+    "C:\\Users\\liamd\\Documents\\FYP-liquidity-pool\\hardhat\\node_modules\\@openzeppelin\\contracts\\token\\ERC20\\extensions\\IERC20Metadata.sol": {
+      "lastModificationDate": 1714590868477,
       "contentHash": "4c02fa6f7ae7b6c289cef80424f0c875",
       "sourceName": "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol",
       "solcConfig": {
@@ -231,45 +342,9 @@
         "IERC20Metadata"
       ]
     },
-    "/Users/liammichel/Documents/FYP-liquidity-pool/hardhat/node_modules/@openzeppelin/contracts/token/ERC20/IERC20.sol": {
-      "lastModificationDate": 1713460455892,
-      "contentHash": "5517c8678c18eb1a8ba58810e7ca39ca",
-      "sourceName": "@openzeppelin/contracts/token/ERC20/IERC20.sol",
-      "solcConfig": {
-        "version": "0.8.20",
-        "settings": {
-          "evmVersion": "paris",
-          "optimizer": {
-            "enabled": false,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [],
-      "versionPragmas": [
-        "^0.8.20"
-      ],
-      "artifacts": [
-        "IERC20"
-      ]
-    },
-    "/Users/liammichel/Documents/FYP-liquidity-pool/hardhat/contracts/modifiedPool.sol": {
-      "lastModificationDate": 1715515309568,
-      "contentHash": "9404ae1918429ae00f0f4e7ab679a58e",
+    "C:\\Users\\liamd\\Documents\\FYP-liquidity-pool\\hardhat\\contracts\\modifiedPool.sol": {
+      "lastModificationDate": 1715524538101,
+      "contentHash": "4de709797b6ed749d87ba1109cdd31b4",
       "sourceName": "contracts/modifiedPool.sol",
       "solcConfig": {
         "version": "0.8.20",
@@ -306,48 +381,9 @@
         "DynamicLiquidityPool"
       ]
     },
-    "/Users/liammichel/Documents/FYP-liquidity-pool/hardhat/contracts/liquiditypool.sol": {
-      "lastModificationDate": 1715515291237,
-      "contentHash": "de8bffb846defa2e3a6c734a87695e27",
-      "sourceName": "contracts/liquiditypool.sol",
-      "solcConfig": {
-        "version": "0.8.20",
-        "settings": {
-          "evmVersion": "paris",
-          "optimizer": {
-            "enabled": false,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [
-        "@openzeppelin/contracts/token/ERC20/ERC20.sol",
-        "./LpToken.sol"
-      ],
-      "versionPragmas": [
-        "0.8.20"
-      ],
-      "artifacts": [
-        "LiquidityPool"
-      ]
-    },
-    "/Users/liammichel/Documents/FYP-liquidity-pool/hardhat/contracts/SwapToken.sol": {
-      "lastModificationDate": 1713745330133,
-      "contentHash": "021374f19dd8e893e91d760ba0c5d645",
+    "C:\\Users\\liamd\\Documents\\FYP-liquidity-pool\\hardhat\\contracts\\SwapToken.sol": {
+      "lastModificationDate": 1714507696256,
+      "contentHash": "2db4467dadd7e05f7747a352d4fd1eaf",
       "sourceName": "contracts/SwapToken.sol",
       "solcConfig": {
         "version": "0.8.20",
@@ -383,45 +419,9 @@
         "SwapToken"
       ]
     },
-    "/Users/liammichel/Documents/FYP-liquidity-pool/hardhat/contracts/helloWorld.sol": {
-      "lastModificationDate": 1713460295750,
-      "contentHash": "61f8c3f4d8cd352a5842fb3160cbd200",
-      "sourceName": "contracts/helloWorld.sol",
-      "solcConfig": {
-        "version": "0.8.20",
-        "settings": {
-          "evmVersion": "paris",
-          "optimizer": {
-            "enabled": false,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [],
-      "versionPragmas": [
-        "0.8.20"
-      ],
-      "artifacts": [
-        "helloworld"
-      ]
-    },
-    "/Users/liammichel/Documents/FYP-liquidity-pool/hardhat/contracts/ratiotesting.sol": {
-      "lastModificationDate": 1713731333205,
-      "contentHash": "10c30a2a62fed44af72caa0a34601ca6",
+    "C:\\Users\\liamd\\Documents\\FYP-liquidity-pool\\hardhat\\contracts\\ratiotesting.sol": {
+      "lastModificationDate": 1713917424366,
+      "contentHash": "7bc6bc119d1d9e1daad92f3c12b97849",
       "sourceName": "contracts/ratiotesting.sol",
       "solcConfig": {
         "version": "0.8.20",
@@ -453,9 +453,9 @@
         "Ratios"
       ]
     },
-    "/Users/liammichel/Documents/FYP-liquidity-pool/hardhat/contracts/transferContract.sol": {
-      "lastModificationDate": 1713460295784,
-      "contentHash": "0f68427e225071b52626b391216c6a4a",
+    "C:\\Users\\liamd\\Documents\\FYP-liquidity-pool\\hardhat\\contracts\\transferContract.sol": {
+      "lastModificationDate": 1713917424366,
+      "contentHash": "375e00a0fe668d87eabd931f4dc8cd78",
       "sourceName": "contracts/transferContract.sol",
       "solcConfig": {
         "version": "0.8.20",
