@@ -99,7 +99,7 @@ contract DynamicLiquidityPool{
             return "Within ratio";
 
         }else{
-            baseFee = 10e16;
+            baseFee = 1e16;
             return "Not within ratio";
         }
 

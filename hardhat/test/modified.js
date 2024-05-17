@@ -36,10 +36,10 @@ describe("Modified", () => {
     const reserveRatio = await liquiditypool.getReserveRatio();
     console.log(reserveRatio);
   });
-  it('should calculate the reserve ratio correctly', async() => {
+  it("should calculate the reserve ratio correctly", async () => {
     const reserveRatio = await liquiditypool.getReserveRatio();
-    assert.equal(reserveRatio, BigInt(2 * 1e18))
-  })
+    assert.equal(reserveRatio, BigInt(2 * 1e18));
+  });
 
   it("should allow me to view and set the external ratio (for testing)", async () => {
     const [owner] = await ethers.getSigners();
@@ -242,7 +242,7 @@ describe("Modified", () => {
     console.log(internalRatio);
     //check the internal fee based on this
     const internalFee = await liquiditypool.baseFee();
-    assert.equal(internalFee, BigInt(10e16));
+    assert.equal(internalFee, BigInt(1e16));
     assert.equal(externalRatio, parseEther("2.0"));
     console.log("intenal ratio: ", internalRatio);
     console.log("external ratio: ", externalRatio);

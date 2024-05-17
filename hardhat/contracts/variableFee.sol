@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0
 
 pragma solidity 0.8.20;
+import "hardhat/console.sol";
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "./LpToken.sol";
@@ -21,17 +22,19 @@ contract VariableLiquidityPool{
     uint public token1_reserve = 0;
     uint public token2_reserve = 0;
     uint public precision = 1e18;
-    uint public baseFee = 3*10e15;
+    uint public baseFee = 3*1e15;
     uint[] public dataPoints;
     uint private lastCheckTime = block.timestamp;
     uint256 public lastFetchedExternalRatio = 0;
     uint256 public average_external_ratio;
-    uint public recent_swaps = 0;
+    uint public perc_diff = 0;
+    bool public executeSwapLogic = false;
 
     constructor(address _t1, address _t2, address _lptoken){
         token1 = ERC20(_t1);
         token2 = ERC20(_t2);
         lptoken = LpToken(_lptoken);
+        
 
 
     }
@@ -71,44 +74,70 @@ contract VariableLiquidityPool{
 
     function getReserveRatio() public view returns(uint){  
         require(token1_reserve> 0 && token2_reserve > 0 );
+        console.log('calculating new reserve ratio');
+        console.log(token1_reserve);
+        console.log(token2_reserve);
+
         uint ratio = (token2_reserve * precision) / token1_reserve;
         return ratio;
 
     }
 
     function withFee(uint amount) public view returns(uint){
+        console.log('made it to withfee');
+        console.log(10**18);
+        console.log(baseFee);
+        uint adjusted = 10**18 - baseFee;
+        console.log('percentage to receive is:', adjusted);
         uint minusFee = amount * (10**18 - baseFee) / 10**18;
         return minusFee;
     }
 
 
     //tA / tB should be == the price feed
-    function calculateNewSwapFee() public returns(string memory){
+    function calculateNewSwapFee() public returns(uint){
         require(token1_reserve > 0 && token2_reserve > 0);
         uint internal_ratio = getReserveRatio(); 
+
         //calculate upper and
         //lower bound for the internal ratio
         //if our average external ratio deviates from this then we charge higher fee
 
         uint upperBound = internal_ratio * 1005 / 1000; // Multiply by 1.05 but adjusted for solidity's lack of decimal
         uint lowerBound = internal_ratio * 995 / 1000;  // Multiply by 0.95 adjusted for solidity
-
         uint percentageDifference;
-        //calculate the percentage difference
         if(average_external_ratio > internal_ratio){
-          percentageDifference = (average_external_ratio - internal_ratio) * 100 / internal_ratio;
+            percentageDifference = (average_external_ratio - internal_ratio) *1e18 / internal_ratio;
         }else{
-          percentageDifference = (internal_ratio - average_external_ratio) * 100 / internal_ratio;
+            percentageDifference = (internal_ratio - average_external_ratio) *1e18 / average_external_ratio;
+
+        }   
+        perc_diff = percentageDifference;
+        console.log('percentage difference below');
+        console.log(percentageDifference);
+        if(percentageDifference < 5*1e15){
+            console.log('minimal difference, setting base fee');
+            baseFee = 3*1e15;
+        }else{
+            console.log('large difference, setting big fee');
+            console.log('oldFee');
+            console.log(baseFee);
+            console.log('perc_diff');
+            console.log(perc_diff);
+
+            uint newFee = 3*1e15 + (perc_diff);
+            console.log('calculated new fee');
+            baseFee = newFee;
+            console.log(' set new fee');
+            console.log('new fee is now:', baseFee);
+            //if the difference is more than 50%, then we cap the fee at 50%
+            if(newFee > 5e17){
+                baseFee = 5e17;
+            }
         }
-                // calculate the new swap fee based on the percentage difference
-        uint newFee = baseFee + (baseFee * percentageDifference);
-        baseFee = newFee;
 
-        // return the new swap fee
-        return "Swap fee updated successfully";
+        // return "Swap fee updated successfully";
 
-
-        
     
     }
         //function to calculate the time since last chainlink ratio fetch
@@ -138,7 +167,7 @@ contract VariableLiquidityPool{
         else{
             for(uint i=0; i < dataPoints.length -1; i ++){
                 dataPoints[i] = dataPoints[i+1];
-            }
+            }   
             dataPoints[dataPoints.length-1] = point;
         }
         calculateSMA();
@@ -231,6 +260,7 @@ contract VariableLiquidityPool{
     function addLiquidity(uint _amount1, uint _amount2, uint slippage) external returns(uint shares) {
         //if 0 of either token is supplied, abort
         require(_amount1 >0 && _amount2>0);
+
         //first check if the passed in # of tokens satisfies the ratio of the reserves (such that price will not change when adding this liquidity)
         if(token1_reserve > 0 || token2_reserve >0 ){
             //if passed amounts don't satisfiy, then find new ratios that do
@@ -264,6 +294,7 @@ contract VariableLiquidityPool{
 
         //update the current user deposit
         addDeposit(shares);
+
         return shares;
  
     }
@@ -309,6 +340,7 @@ contract VariableLiquidityPool{
     function calculateSwap(uint countIn, uint inReserve, uint outReserve) public view returns(uint amountOut){
         //calculate amount of token in (with fee of 0.3%)
         uint countInWithFee = withFee(countIn);
+        console.log('countInWithFee:', countInWithFee);
         //dy = ydx / x + dx 
         amountOut =  (outReserve * countInWithFee) / (inReserve + countInWithFee );
     }
@@ -337,22 +369,28 @@ contract VariableLiquidityPool{
         //check what token we are receiving
         bool isToken1 = (_token == address(token1));
         (ERC20 tokenIn, ERC20 tokenOut, uint inReserve, uint outReserve ) = isToken1? (token1, token2, token1_reserve, token2_reserve): (token2, token1, token2_reserve, token1_reserve);
-        if(calculateTimeDiff() || (recent_swaps +1) %2 == 0){
+        console.log('current internal ratio is:', getReserveRatio());
+
+        if(calculateTimeDiff() || executeSwapLogic){
+            console.log('Calculating new swap fee');
             uint256 newRatio = getChainlinkDataFeedLatestAnswer();
+            console.log('new ratio is:', newRatio);
             shiftPoints(newRatio);
             calculateNewSwapFee();
-            recent_swaps = 0;
         }
+
+
         //swap logic here
 
         amountOut = calculateSwap(countIn, inReserve, outReserve);
+        console.log('calculated amount out');
         //transfer the 'inToken' in
         tokenIn.transferFrom(msg.sender, address(this), countIn);
         //transfer the 'amountOut' amount of tokens to sender
         tokenOut.transfer(msg.sender, amountOut);
         //update the reserves to reflect new balances;
         updateReserves(token1.balanceOf(address(this)), token2.balanceOf(address(this)));
-        recent_swaps += 1;
+        executeSwapLogic = !executeSwapLogic;
 
     }
 

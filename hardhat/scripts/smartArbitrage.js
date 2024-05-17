@@ -557,7 +557,9 @@ const main = async () => {
         // console.log("set external ratio n");
       }
       await newArbitrage(signerPools, signerTokens, signer, currentRatio);
+      break;
     }
+    break;
   }
 
   // // remove liquidity from the pool
