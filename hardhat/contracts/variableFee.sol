@@ -74,9 +74,9 @@ contract VariableLiquidityPool{
 
     function getReserveRatio() public view returns(uint){  
         require(token1_reserve> 0 && token2_reserve > 0 );
-        console.log('calculating new reserve ratio');
-        console.log(token1_reserve);
-        console.log(token2_reserve);
+        //console.log('calculating new reserve ratio');
+        //console.log(token1_reserve);
+        //console.log(token2_reserve);
 
         uint ratio = (token2_reserve * precision) / token1_reserve;
         return ratio;
@@ -84,11 +84,11 @@ contract VariableLiquidityPool{
     }
 
     function withFee(uint amount) public view returns(uint){
-        console.log('made it to withfee');
-        console.log(10**18);
-        console.log(baseFee);
+        //console.log('made it to withfee');
+        //console.log(10**18);
+        //console.log(baseFee);
         uint adjusted = 10**18 - baseFee;
-        console.log('percentage to receive is:', adjusted);
+        //console.log('percentage to receive is:', adjusted);
         uint minusFee = amount * (10**18 - baseFee) / 10**18;
         return minusFee;
     }
@@ -113,23 +113,23 @@ contract VariableLiquidityPool{
 
         }   
         perc_diff = percentageDifference;
-        console.log('percentage difference below');
-        console.log(percentageDifference);
+        //console.log('percentage difference below');
+        //console.log(percentageDifference);
         if(percentageDifference < 5*1e15){
-            console.log('minimal difference, setting base fee');
+            //console.log('minimal difference, setting base fee');
             baseFee = 3*1e15;
         }else{
-            console.log('large difference, setting big fee');
-            console.log('oldFee');
-            console.log(baseFee);
-            console.log('perc_diff');
-            console.log(perc_diff);
+            //console.log('large difference, setting big fee');
+            //console.log('oldFee');
+            //console.log(baseFee);
+            //console.log('perc_diff');
+            //console.log(perc_diff);
 
             uint newFee = 3*1e15 + (perc_diff);
-            console.log('calculated new fee');
+            //console.log('calculated new fee');
             baseFee = newFee;
-            console.log(' set new fee');
-            console.log('new fee is now:', baseFee);
+            //console.log(' set new fee');
+            //console.log('new fee is now:', baseFee);
             //if the difference is more than 50%, then we cap the fee at 50%
             if(newFee > 5e17){
                 baseFee = 5e17;
@@ -340,7 +340,7 @@ contract VariableLiquidityPool{
     function calculateSwap(uint countIn, uint inReserve, uint outReserve) public view returns(uint amountOut){
         //calculate amount of token in (with fee of 0.3%)
         uint countInWithFee = withFee(countIn);
-        console.log('countInWithFee:', countInWithFee);
+        //console.log('countInWithFee:', countInWithFee);
         //dy = ydx / x + dx 
         amountOut =  (outReserve * countInWithFee) / (inReserve + countInWithFee );
     }
@@ -369,12 +369,12 @@ contract VariableLiquidityPool{
         //check what token we are receiving
         bool isToken1 = (_token == address(token1));
         (ERC20 tokenIn, ERC20 tokenOut, uint inReserve, uint outReserve ) = isToken1? (token1, token2, token1_reserve, token2_reserve): (token2, token1, token2_reserve, token1_reserve);
-        console.log('current internal ratio is:', getReserveRatio());
+        //console.log('current internal ratio is:', getReserveRatio());
 
         if(calculateTimeDiff() || executeSwapLogic){
-            console.log('Calculating new swap fee');
+            //console.log('Calculating new swap fee');
             uint256 newRatio = getChainlinkDataFeedLatestAnswer();
-            console.log('new ratio is:', newRatio);
+            //console.log('new ratio is:', newRatio);
             shiftPoints(newRatio);
             calculateNewSwapFee();
         }
@@ -383,7 +383,7 @@ contract VariableLiquidityPool{
         //swap logic here
 
         amountOut = calculateSwap(countIn, inReserve, outReserve);
-        console.log('calculated amount out');
+        //console.log('calculated amount out');
         //transfer the 'inToken' in
         tokenIn.transferFrom(msg.sender, address(this), countIn);
         //transfer the 'amountOut' amount of tokens to sender

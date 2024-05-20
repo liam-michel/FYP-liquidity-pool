@@ -14,7 +14,7 @@ export const onChainSwapCalc = async (amountIn, fee, inReserve, outReserve) => {
 //buying A externally means do amountIn / ratio as 1.25B should be 1A
 
 import fs from "fs";
-
+import path from "path";
 export function writeToFile(filename, values) {
   const data = values.join("\n");
 
@@ -26,6 +26,39 @@ export function writeToFile(filename, values) {
     }
   });
 }
+
+const generateRandomFileName = (length = 10) => {
+  let filename = "";
+  const chars =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+  for (let i = 0; i < length; i++) {
+    const randomIndex = Math.floor(Math.random() * chars.length);
+    filename += chars[randomIndex];
+  }
+  return filename;
+};
+
+export const writeResultsToFile = (results, filePath) => {
+  let output = "";
+  for (const account in results) {
+    output += `Account: ${account}\n`;
+    results[account].forEach((result) => {
+      output += `  Pool ${result.poolIndex}:\n`;
+      output += `    Old Total: ${result.oldTotal}\n`;
+      output += `    New Total: ${result.newTotal}\n`;
+      output += `    Difference: ${result.difference}\n`;
+      output += `    ${result.loss ? "Impermanent Loss" : "Gain"}\n`;
+    });
+    output += "\n"; // Add a newline for separation between accounts
+  }
+
+  const filename = `${generateRandomFileName()}.txt`;
+  const file_path = path.join(filePath, filename);
+
+  // Write the output to the specified file
+  fs.writeFileSync(file_path, output, "utf8");
+};
 
 export const externalBuyA = (amountIn, ratio) => {
   const scale = BigInt(1e18);

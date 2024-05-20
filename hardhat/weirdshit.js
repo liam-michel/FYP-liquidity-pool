@@ -1,57 +1,92 @@
-import * as math from "mathjs";
+import pkg from "hardhat";
+import BigNumber from "bignumber.js";
+const { ethers } = pkg;
+const { parseEther } = ethers;
+const SwapTokenFactory = await ethers.getContractFactory("SwapToken");
+const LpTokenFactory = await ethers.getContractFactory("LpToken");
+const LiquidityPoolFactory = await ethers.getContractFactory("LiquidityPool");
 
-let x_0 = math.parse("x_0");
-let y_0 = math.parse("y_0");
-let P = math.parse("P");
-let dP = math.parse("dP");
-let dx = math.parse("dx");
+import {
+  optimalXin,
+  optimalXout,
+  optimalYin,
+  optimalYout,
+} from "./scripts/optArbCalcs.js";
+import { sec } from "mathjs";
 
-let profitFunction = math.parse("(y_0 / (x_0 + dx)) - (P - dP) * dx");
-let derivative = math.derivative(profitFunction, dx);
+const main = async () => {
+  const swap1 = await SwapTokenFactory.deploy(0n, "SwapToken1", "A");
+  const swap2 = await SwapTokenFactory.deploy(0n, "SwapToken2", "B");
+  const lpToken = await LpTokenFactory.deploy(0n, "LpToken", "LP");
+  const liquidityPool = await LiquidityPoolFactory.deploy(
+    swap1,
+    swap2,
+    lpToken
+  );
+  await lpToken.transferOwnership(liquidityPool);
 
-const givenValues = {
-  x_0: 100, // Replace with the actual value of x_0
-  y_0: 200, // Replace with the actual value of y_0
-  P: 1.5, // Replace with the actual price P in the AMM
-  dP: 0.05, // Replace with the actual price difference dP
+  const [owner, second, third] = await ethers.getSigners();
+  await swap1.mint(1000);
+  await swap2.mint(1800);
+  await swap1.approve(liquidityPool, 1000);
+  await swap2.approve(liquidityPool, 1800);
+  await liquidityPool.addLiquidity(1000, 1800, 0);
+
+  const lpShares = await lpToken.balanceOf(owner);
+  console.log("lpShares: ", lpShares.toString());
+
+  //second user adds 300 and 540 A:B
+  const secondswap1 = swap1.connect(second);
+  const secondswap2 = swap2.connect(second);
+  const secondlpToken = lpToken.connect(second);
+  const secondPool = liquidityPool.connect(second);
+  await secondswap1.mint(300);
+  await secondswap2.mint(540);
+  await secondswap1.approve(secondPool, 300);
+  await secondswap2.approve(secondPool, 540);
+  await secondPool.addLiquidity(300, 540, 0);
+  const secondLpShares = await secondlpToken.balanceOf(second.address);
+  console.log("secondLpShares: ", secondLpShares.toString());
+  //fetch reserve state
+  const reserve1 = await liquidityPool.token1_reserve();
+  const reserve2 = await liquidityPool.token2_reserve();
+  console.log("reserve1: ", reserve1.toString());
+  console.log("reserve2: ", reserve2.toString());
+
+  const initialAVal = 9;
+  const initialBVal = 5;
+  const depositVal = 9 * 300 + 5 * 540;
+  console.log("depositVal: ", depositVal);
+  //external ratio changes from 1.8 to 1.6
+  //execute a trade from third account
+  const thirdswap1 = swap1.connect(third);
+  const thirdswap2 = swap2.connect(third);
+  const thirdPool = liquidityPool.connect(third);
+  const thirdLpToken = lpToken.connect(third);
+  await thirdswap2.mint(78);
+  const initialArb = 78 * 1.6;
+  console.log("initial ARB value: ", initialArb);
+  //buy A for B on external market
+  const externalA = Math.floor(78);
+  await thirdswap2.burn(78);
+  const newBal = await thirdswap2.balanceOf(third);
+  console.log("newBBal before trade: ", newBal.toString());
+  await thirdswap1.mint(externalA);
+  await thirdswap1.approve(thirdPool, externalA);
+  await thirdPool.swap(thirdswap1, externalA);
+  //check third address token 2 balance;
+  const thirdSwap2Bal = await thirdswap2.balanceOf(third);
+  console.log("thirdSwap2Bal: ", thirdSwap2Bal.toString());
+
+  //lp removes their liquidity
+  const lpBal = await secondlpToken.balanceOf(second);
+  await secondPool.removeLiquidity(lpBal);
+  //check balances
+  const secondSwap1Bal = await secondswap1.balanceOf(second);
+  const secondSwap2Bal = await secondswap2.balanceOf(second);
+  console.log("secondSwap1Bal: ", secondSwap1Bal.toString());
+  console.log("secondSwap2Bal: ", secondSwap2Bal.toString());
 };
 
-const derivativeFunc = derivative.compile();
-
-function f(dx) {
-  return derivativeFunc.evaluate({ ...givenValues, dx });
-}
-
-// Define the derivative of the derivative (second derivative) for the Newton-Raphson method
-function fPrime(dx) {
-  return (f(dx + 0.00001) - f(dx)) / 0.00001;
-}
-
-let newdx = 1; // Initial guess for dx
-let tolerance = 1e-6; // Tolerance for convergence
-let maxIterations = 1000; // Maximum number of iterations to avoid infinite loops
-let dxPrevious;
-let iteration = 0;
-
-do {
-  dxPrevious = newdx;
-  let fOfDx = f(newdx);
-  let fPrimeOfDx = fPrime(newdx);
-
-  if (fPrimeOfDx === 0) {
-    break; // Avoid division by zero
-  }
-  // Newton-Raphson formula
-
-  newdx = newdx - fOfDx / fPrimeOfDx;
-  iteration++;
-} while (math.abs(dx - dxPrevious) > tolerance && iteration < maxIterations);
-
-// Output the result
-if (iteration < maxIterations) {
-  console.log("Optimal dx:", newdx);
-} else {
-  console.log(
-    "Failed to converge to a solution within the maximum number of iterations."
-  );
-}
+console.log("hi");
+await main();

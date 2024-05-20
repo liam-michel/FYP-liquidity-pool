@@ -1,6 +1,8 @@
 import pkg from "hardhat";
 import BigNumber from "bignumber.js";
 import { simulatePoissonProcess, randomWalk } from "./evaluationHelpers.js";
+import { writeResultsToFile } from "../helpers.js";
+
 const { ethers } = pkg;
 const { parseEther } = ethers;
 import {
@@ -13,8 +15,9 @@ import { assert } from "ethers";
 const SwapTokenFactory = await ethers.getContractFactory("SwapToken");
 const LpTokenFactory = await ethers.getContractFactory("LpToken");
 const LiquidityPoolFactory = await ethers.getContractFactory("LiquidityPool");
-const DynamicLiquidityPoolFactory = await ethers.getContractFactory(
-  "DynamicLiquidityPool"
+
+const VariableLiquidityPoolFactory = await ethers.getContractFactory(
+  "VariableLiquidityPool"
 );
 
 function getRandomInt(min, max) {
@@ -57,13 +60,13 @@ const newArbitrage = async (pools, swaps, account, external_ratio) => {
   const external_ratio_scaled = BigInt(external_ratio * 1e18);
   const token1_reserve = await regularPool.token1_reserve();
   const token2_reserve = await regularPool.token2_reserve();
-  //console.log("\n\n");
-  //console.log("Token1 reserve: ", token1_reserve.toString());
-  //console.log("Token2 reserve: ", token2_reserve.toString());
-  //console.log("Internal ratio: ", internal_ratio.toString());
-  //console.log("External ratio: ", external_ratio_scaled.toString());
+  ////console.log("\n\n");
+  ////console.log("Token1 reserve: ", token1_reserve.toString());
+  ////console.log("Token2 reserve: ", token2_reserve.toString());
+  ////console.log("Internal ratio: ", internal_ratio.toString());
+  ////console.log("External ratio: ", external_ratio_scaled.toString());
   // await myTestFunc(swaps, account);
-  //console.log(internal_ratio > external_ratio_scaled);
+  ////console.log(internal_ratio > external_ratio_scaled);
   const product = token1_reserve * token2_reserve;
 
   const tokenChoice = token1;
@@ -76,7 +79,7 @@ const newArbitrage = async (pools, swaps, account, external_ratio) => {
     external_ratio_scaled
   );
   const enoughDifference = percentageDifference > 0.5 ? true : false;
-  //console.log("Enough difference: ", enoughDifference);
+  ////console.log("Enough difference: ", enoughDifference);
 
   let doArbitrage = Math.random() > 0.5 ? true : false;
   doArbitrage = doArbitrage && enoughDifference;
@@ -88,7 +91,7 @@ const newArbitrage = async (pools, swaps, account, external_ratio) => {
     doArbitrage
   ) {
     //user has B so we buy A externally and sell to the pool
-    //console.log('internal_ratio > external_ratio && userToken == "B"');
+    ////console.log('internal_ratio > external_ratio && userToken == "B"');
     //optimal amount of A to put into the pool
     const optimalAmountA = await optimalXin(
       external_ratio,
@@ -105,7 +108,7 @@ const newArbitrage = async (pools, swaps, account, external_ratio) => {
 
     const chosenAmount = getRandomInt(optimalB / BigInt(25), optimalB);
 
-    ////console.log("chosenAmount: ", chosenAmount);
+    //////console.log("chosenAmount: ", chosenAmount);
     //purchase the amount of the token from the external market
     const amountAExternal = BigInt(
       Math.floor(BigNumber(chosenAmount).dividedBy(external_ratio))
@@ -119,7 +122,7 @@ const newArbitrage = async (pools, swaps, account, external_ratio) => {
       await token2.mint(chosenAmount);
       const oldABalance = await token1.balanceOf(account);
       const oldBBalance = await token2.balanceOf(account);
-      //console.log("Old token B Balance: ", oldBBalance);
+      ////console.log("Old token B Balance: ", oldBBalance);
       //MINT AMOUNT OF A TO THE USER SO THEY CAN SWAP INTO THE POOL
 
       await token1.approve(currentPool, amountAExternal);
@@ -128,9 +131,9 @@ const newArbitrage = async (pools, swaps, account, external_ratio) => {
       await token2.burn(chosenAmount);
       if (doArbitrage) {
         const newBBalance = await token2.balanceOf(account);
-        //console.log(`New token B Balance:  ${newBBalance}`);
+        ////console.log(`New token B Balance:  ${newBBalance}`);
         const profit = newBBalance - oldBBalance;
-        //console.log("Total token B profit: ", profit);
+        ////console.log("Total token B profit: ", profit);
       }
     }
   }
@@ -142,7 +145,7 @@ const newArbitrage = async (pools, swaps, account, external_ratio) => {
     tokenSymbol == "B" &&
     doArbitrage
   ) {
-    //console.log('internal_ratio < external_ratio_scaled && userToken == "B"');
+    ////console.log('internal_ratio < external_ratio_scaled && userToken == "B"');
     //Optimal amount of X to remove from the pool
     const optimalXOut = await optimalXout(
       external_ratio,
@@ -154,7 +157,7 @@ const newArbitrage = async (pools, swaps, account, external_ratio) => {
     const newX = BigNumber(token1_reserve) - BigNumber(optimalXOut);
     const newY = BigNumber(product) / newX;
     const optY = BigInt(Math.floor(newY - BigNumber(token2_reserve)));
-    ////console.log("Optimal amount of y to add in: ", optY);
+    //////console.log("Optimal amount of y to add in: ", optY);
     //optY is the optimal amount of Y to add into the pool
 
     const chosenAmount = getRandomInt(optY / BigInt(25), optY);
@@ -184,7 +187,7 @@ const newArbitrage = async (pools, swaps, account, external_ratio) => {
         //sell the token A for token B (to external market) (do a conversion);
         const newBBalance = await token2.balanceOf(account);
         const profit = newBBalance - oldBBalance;
-        //console.log("Total token B profit: ", profit);
+        ////console.log("Total token B profit: ", profit);
       }
     }
   }
@@ -198,7 +201,7 @@ const newArbitrage = async (pools, swaps, account, external_ratio) => {
     tokenSymbol == "A" &&
     doArbitrage
   ) {
-    //console.log('internal_ratio < external_ratio_scaled && userToken == "A"');
+    ////console.log('internal_ratio < external_ratio_scaled && userToken == "A"');
     //optimal amount of B to trade into the pool
     const optimalB = await optimalYin(
       external_ratio,
@@ -213,7 +216,7 @@ const newArbitrage = async (pools, swaps, account, external_ratio) => {
     const amountBExternal = BigInt(
       Math.floor(BigNumber(chosenAmount).multipliedBy(external_ratio))
     );
-    //console.log(typeof chosenAmount, typeof external_ratio);
+    ////console.log(typeof chosenAmount, typeof external_ratio);
     const amountAExternal = BigInt(
       Math.floor(BigNumber(chosenAmount).dividedBy(external_ratio))
     );
@@ -231,7 +234,7 @@ const newArbitrage = async (pools, swaps, account, external_ratio) => {
       if (doArbitrage) {
         const newABalance = await token1.balanceOf(account);
         const profit = newABalance - oldABalance;
-        //console.log("Total token A profit: ", profit);
+        ////console.log("Total token A profit: ", profit);
       }
     }
   }
@@ -243,7 +246,7 @@ const newArbitrage = async (pools, swaps, account, external_ratio) => {
     tokenSymbol == "A" &&
     doArbitrage
   ) {
-    //console.log('internal_ratio > external_ratio_scaled && userToken == "A"');
+    ////console.log('internal_ratio > external_ratio_scaled && userToken == "A"');
     //this is the optimal amount of B to remove from the pool
     const optimalB = await optimalYout(
       external_ratio,
@@ -251,12 +254,12 @@ const newArbitrage = async (pools, swaps, account, external_ratio) => {
       token1,
       token2
     );
-    //console.log("Optimal amount of Y to swap out: ", optimalB);
+    ////console.log("Optimal amount of Y to swap out: ", optimalB);
     const newB = BigNumber(token2_reserve) - BigNumber(optimalB);
     const newA = BigNumber(product) / newB;
     const optA = BigInt(Math.floor(newA - BigNumber(token1_reserve)));
     //optimal amount of X to put into the pool
-    //console.log("Amount of X to put in: ", optA);
+    ////console.log("Amount of X to put in: ", optA);
 
     const chosenAmount = getRandomInt(optA / BigInt(25), optA);
 
@@ -281,9 +284,9 @@ const newArbitrage = async (pools, swaps, account, external_ratio) => {
 
         //sell the token B
         const newABalance = await token1.balanceOf(account);
-        //console.log("New A balance: ", newABalance);
+        ////console.log("New A balance: ", newABalance);
         const profit = newABalance - oldABalance;
-        //console.log("Total token A profit: ", profit);
+        ////console.log("Total token A profit: ", profit);
       }
     }
   } else {
@@ -329,11 +332,11 @@ const setupLiquidityPool = async () => {
   return [swap1, swap2, lpToken, liquidityPool];
 };
 
-const setupDynamicLiquidityPool = async () => {
+const setupVariableLiquidityPool = async () => {
   const swap1 = await SwapTokenFactory.deploy(0n, "SwapToken1", "A");
   const swap2 = await SwapTokenFactory.deploy(0n, "SwapToken2", "B");
   const lpToken = await LpTokenFactory.deploy(0n, "LpToken", "LP");
-  const liquidityPool = await DynamicLiquidityPoolFactory.deploy(
+  const liquidityPool = await VariableLiquidityPoolFactory.deploy(
     swap1,
     swap2,
     lpToken
@@ -354,7 +357,7 @@ const seedLiquidities = async (swap1, swap2, liquidityPool) => {
 };
 const calculateProduct = (reserve1, reserve2) => {
   const product = reserve1 * reserve2;
-  ////console.log("Product is :", product);
+  //////console.log("Product is :", product);
   return product;
 };
 
@@ -406,14 +409,14 @@ const addLiquidityMultiplePools = async (
   valueB
 ) => {
   //generate some amounts
-  ////console.log("value of token A: ", valueA);
-  ////console.log("value of token B: ", valueB);
+  //////console.log("value of token A: ", valueA);
+  //////console.log("value of token B: ", valueB);
   const lowerBound = ethers.parseEther("10");
   const upperBound = ethers.parseEther("100");
   const amounts = generateAmounts(accounts.length, lowerBound, upperBound);
   let all_deposits = {};
-  ////console.log(accounts.length);
-  ////console.log(pools.length);
+  //////console.log(accounts.length);
+  //////console.log(pools.length);
   //iterate over pools and then accounts
   for (let i = 0; i < pools.length; i++) {
     const current_pool = pools[i];
@@ -448,68 +451,76 @@ const addLiquidityMultiplePools = async (
   return all_deposits;
 };
 
-const calculateImpermanentLoss = async (
-  pool,
-  deposits,
-  token1,
-  token2,
-  ratio
-) => {
-  console.log("\n\n");
-  console.log("NEW POOl");
-  const reserve1 = await pool.token1_reserve();
-  const reserve2 = await pool.token2_reserve();
-  console.log("Reserve1: ", reserve1.toString());
-  console.log("Reserve2: ", reserve2.toString());
-  const accounts = Object.keys(deposits);
-  for (const account of accounts) {
-    const deposit = deposits[account];
-    const amountA = deposit[0][0];
-    const amountB = deposit[1][0];
-    console.log("Old Amounts");
+const calculateImpermanentLoss = async (pools, swaps, all_deposits, ratio) => {
+  //dict to store aggregated results from all pools
+  console.log("Pool COunt: ", pools.length);
+  const results = {};
+  for (let i = 0; i < pools.length; i++) {
+    console.log("NEW POOL \n\n");
+    const current_pool = pools[i];
+    const deposits = all_deposits[i];
+    const [token1, token2] = swaps[i];
+    const reserve1 = await current_pool.token1_reserve();
+    const reserve2 = await current_pool.token2_reserve();
+    //console.log("Reserve1: ", reserve1.toString());
+    //console.log("Reserve2: ", reserve2.toString());
+    const accounts = Object.keys(deposits);
+    for (const account of accounts) {
+      const deposit = deposits[account];
+      const amountA = deposit[0][0];
+      const amountB = deposit[1][0];
+      console.log("Old Amounts");
 
-    // const costA = deposit[0][1];
-    // const costB = deposit[1][1];
-    console.log("Old amount A: ", amountA.toString());
-    console.log("Old amount B: ", amountB.toString());
-    const oldRatio = BigNumber(amountB).dividedBy(amountA);
-    console.log("Old ratio: ", oldRatio.toString());
-    // // console.log("costA: ", costA.toString());
-    // // console.log("costB: ", costB.toString());
-    // const valueA = BigNumber(amountA).multipliedBy(costA);
-    // const valueB = BigNumber(amountB).multipliedBy(costB);
-    // const oldTotal = BigNumber(valueA).plus(valueB).dividedBy(1e18);
-    // //calculate new value of their deposit
-    const newAmountA = await token1.balanceOf(account);
-    const newAmountB = await token2.balanceOf(account);
-    console.log("New amount A: ", newAmountA.toString());
-    console.log("New amount B: ", newAmountB.toString());
-    const newRatio = BigNumber(newAmountB).dividedBy(newAmountA);
-    console.log("New ratio: ", newRatio.toString());
-    // const newValueA = BigNumber(newAmountA).multipliedBy(costA);
-    // const newValueB = BigNumber(newAmountB).multipliedBy(costB);
-    // const newTotal = BigNumber(newValueA).plus(newValueB).dividedBy(1e18);
-    // console.log("Old total value: ", oldTotal.toString());
-    // console.log("New total value: ", newTotal.toString());
-    // const difference = newTotal.minus(oldTotal);
-    // if (difference.lt(0)) {
-    //   console.log("Impermanent loss for account: ", difference.toString());
-    // } else {
-    //   console.log("Gain for account: ", difference.toString());
-    // }
+      const costA = deposit[0][1];
+      const costB = deposit[1][1];
+      console.log("Old amount A: ", amountA.toString());
+      console.log("Old amount B: ", amountB.toString());
+      const oldRatio = BigNumber(amountB).dividedBy(amountA);
+      console.log("Old ratio: ", oldRatio.toString());
+      console.log("costA: ", costA.toString());
+      console.log("costB: ", costB.toString());
+      const valueA = BigNumber(amountA).multipliedBy(costA);
+      const valueB = BigNumber(amountB).multipliedBy(costB);
+      const oldTotal = BigNumber(valueA).plus(valueB).dividedBy(1e18);
+      //calculate new value of their deposit
+      const newAmountA = await token1.balanceOf(account);
+      const newAmountB = await token2.balanceOf(account);
+      console.log("New amount A: ", newAmountA.toString());
+      console.log("New amount B: ", newAmountB.toString());
+      const newRatio = BigNumber(newAmountB).dividedBy(newAmountA);
+      console.log("New ratio: ", newRatio.toString());
+      const newValueA = BigNumber(newAmountA).multipliedBy(costA);
+      const newValueB = BigNumber(newAmountB).multipliedBy(costB);
+      const newTotal = BigNumber(newValueA).plus(newValueB).dividedBy(1e18);
+      console.log("Old total value: ", oldTotal.toString());
+      console.log("New total value: ", newTotal.toString());
+      const difference = newTotal.minus(oldTotal);
+      //add results to results object
+      const newResult = {
+        poolIndex: i,
+        oldTotal: oldTotal.toString(),
+        newTotal: newTotal.toString(),
+        difference: difference.toString(),
+        loss: difference.lt(0),
+      };
+      if (!results[account]) {
+        results[account] = [];
+      }
+      results[account].push(newResult);
+    }
   }
+  return results;
 };
-
 const main = async () => {
   const lambda = 10;
   const duration = 500;
   //setup regular Liquidity Pool
   const [regularswap1, regularswap2, regularlpToken, regularPool] =
     await setupLiquidityPool();
-  const [dynamicswap1, dynamicswap2, dynamiclpToken, dynamicPool] =
-    await setupDynamicLiquidityPool();
+  const [variableswap1, variableswap2, variablelpToken, variablePool] =
+    await setupVariableLiquidityPool();
   await seedLiquidities(regularswap1, regularswap2, regularPool);
-  await seedLiquidities(dynamicswap1, dynamicswap2, dynamicPool);
+  await seedLiquidities(variableswap1, variableswap2, variablePool);
   const value1 = BigNumber(100);
   const transactionVolume = simulatePoissonProcess(lambda, duration);
   const assetRatios = randomWalk(2, 0.03, 199);
@@ -521,10 +532,10 @@ const main = async () => {
 
   const swaps = [
     [regularswap1, regularswap2],
-    [dynamicswap1, dynamicswap2],
+    [variableswap1, variableswap2],
   ];
-  const pools = [regularPool, dynamicPool];
-  const lpTokens = [regularlpToken, dynamiclpToken];
+  const pools = [regularPool, variablePool];
+  const lpTokens = [regularlpToken, variablelpToken];
 
   const deposits = await addLiquidityMultiplePools(
     swaps,
@@ -535,6 +546,7 @@ const main = async () => {
     value2
   );
 
+  //console.log(deposits);
   //this signer will be used for all swaps
   const signer = accounts[6];
   //setup tokens and pool for the signer
@@ -551,15 +563,13 @@ const main = async () => {
     for (let j = 0; j < currentVolume; j++) {
       //pick a random value from signers
       transactionCounter += 1;
-      if (transactionCounter % 5 == 0) {
-        const dynamicPool = pools[1];
-        await dynamicPool.setExternalRatio(BigInt(currentRatio * 1e18));
-        // console.log("set external ratio n");
+      if (transactionCounter % 2 == 0) {
+        const variablePool = pools[1];
+        await variablePool.setExternalRatio(BigInt(currentRatio * 1e18));
+        //console.log("set external ratio n");
       }
       await newArbitrage(signerPools, signerTokens, signer, currentRatio);
-      break;
     }
-    break;
   }
 
   // // remove liquidity from the pool
@@ -574,19 +584,18 @@ const main = async () => {
   const reserve2afterwithdraw = await regularPool.token2_reserve();
   console.log("Reserve1 after withdraw: ", reserve1afterwithdraw.toString());
   console.log("Reserve2 after withdraw: ", reserve2afterwithdraw.toString());
-  const finalRatio = assetRatios[0];
-  //console.log("first ratio: ", finalRatio);
+  const finalRatio = assetRatios[assetRatios.length - 1];
+  ////console.log("first ratio: ", finalRatio);
   //calculate loss / gain for the different pools
-  for (let i = 0; i < pools.length; i++) {
-    const deposit = deposits[i];
-    const current_pool = pools[i];
-    await calculateImpermanentLoss(
-      current_pool,
-      deposit,
-      swaps[i][0],
-      swaps[i][1],
-      finalRatio
-    );
+  const results = await calculateImpermanentLoss(
+    pools,
+    swaps,
+    deposits,
+    finalRatio
+  );
+  for (const account in results) {
+    console.log("hello world: ", account);
   }
+  writeResultsToFile(results, "./transResults");
 };
 await main();

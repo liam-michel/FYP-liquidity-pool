@@ -38,7 +38,7 @@
       ]
     },
     "C:\\Users\\liamd\\Documents\\FYP-liquidity-pool\\hardhat\\contracts\\liquiditypool.sol": {
-      "lastModificationDate": 1714529891298,
+      "lastModificationDate": 1716161837984,
       "contentHash": "f657ca05d6039673f1ae368d19ff5deb",
       "sourceName": "contracts/liquiditypool.sol",
       "solcConfig": {
@@ -491,8 +491,8 @@
       ]
     },
     "C:\\Users\\liamd\\Documents\\FYP-liquidity-pool\\hardhat\\contracts\\variableFee.sol": {
-      "lastModificationDate": 1715914940637,
-      "contentHash": "32c12e2fe0de20a9303b023d365b71da",
+      "lastModificationDate": 1715917722397,
+      "contentHash": "37d80414840b9ee931c0ce40771eeec3",
       "sourceName": "contracts/variableFee.sol",
       "solcConfig": {
         "version": "0.8.20",
