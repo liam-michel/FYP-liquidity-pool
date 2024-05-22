@@ -48,11 +48,8 @@ export default function MintTokens() {
                 value={tokenA}
                 onChange={(e) => {
                   const value = e.target.value;
-                  const maxValue = 1000; // Define the maximum value you want to allow
-                  if (isNumeric(value) && +value <= maxValue) {
+                  if (isNumeric(value)) {
                     setTokenA(value);
-                  } else if (isNumeric(value) && +value > maxValue) {
-                    setTokenA(maxValue.toString()); // Set to maxValue if input exceeds it
                   } else {
                     setTokenA(""); // Reset if input is not numeric
                   }
@@ -76,11 +73,8 @@ export default function MintTokens() {
                 value={tokenB}
                 onChange={(e) => {
                   const value = e.target.value;
-                  const maxValue = 1000; // Define the maximum value you want to allow
-                  if (isNumeric(value) && +value <= maxValue) {
+                  if (isNumeric(value)) {
                     setTokenB(value);
-                  } else if (isNumeric(value) && +value > maxValue) {
-                    setTokenB(maxValue.toString()); // Set to maxValue if input exceeds it
                   } else {
                     setTokenB(""); // Reset if input is not numeric
                   }

@@ -1,36 +1,28 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Liam Michel 6641319 FYP
 
-## Getting Started
+# CRYPTO-CURRENCY LIQUIDITY POOLS WITH OFF-CHAIN DATA INTEGRATION FOR MITIGATING IMPERMANENT LOSS
 
-First, run the development server:
+## How to run the front-end
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+To run the frontend simply run the command \
+**npm run dev**
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+# File structure
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+**/src** contains all of the files pertaining to the basic react frontend demo for the basic liquidity pool. \
+**/hardhat** contains all code pertaining to smart contracts, testing and evaluation of the fee mechanism. \
+**Inside of /hardhat**
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+- /contracts contains all of the smart contracts **without** private functions. I had to remove private functions for unit testing so these contracts are not safe for actual deployment/use, only for testing.
 
-## Learn More
+* - **liquiditypool.sol** contains the base CPMM algorithm
+* - **swapToken.sol** is the ERC20 token contract
+* - **modifiedPool.sol** is an old modified pool that simply changes the fee between 0.3 and 1% (not actually used).
+* - **variableFee.sol** contains all of the logic for the variable fee contract (final implementation).
 
-To learn more about Next.js, take a look at the following resources:
+- /deploy-contracts contains all of the same contracts as /contracts, but with appropriate function access restrictions
+- /oldscripts contains miscellaneous JS scripts that I wrote during testing and evaluation but didn't end up using.
+- /scripts contains scripts that were used for evaluation, this includes **smartArbitrage.js** which ran the different evaluation scenarios, and various files with helper functions.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+* /test contains all of the unit tests for all of the smart contracts. All contracts were rigorously tested to ensure that they were behaving properly.
+* /transResults is the output directory for the transaction results.

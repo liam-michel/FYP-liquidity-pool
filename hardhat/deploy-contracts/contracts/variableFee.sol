@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0
 
 pragma solidity 0.8.20;
-import "hardhat/console.sol";
+import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "./LpToken.sol";
@@ -23,54 +23,38 @@ contract VariableLiquidityPool{
     uint public token2_reserve = 0;
     uint public precision = 1e18;
     uint public baseFee = 3*1e15;
-    uint[] public dataPoints;
+    uint[] private dataPoints;
     uint private lastCheckTime = block.timestamp;
-    uint256 public lastFetchedExternalRatio = 0;
-    uint256 public average_external_ratio;
-    uint public perc_diff = 0;
-    bool public executeSwapLogic = false;
+    uint256 private lastFetchedExternalRatio = 0;
+    uint256 private average_external_ratio;
+    uint private perc_diff = 0;
+    bool private executeSwapLogic = false;
 
     constructor(address _t1, address _t2, address _lptoken){
         token1 = ERC20(_t1);
         token2 = ERC20(_t2);
         lptoken = LpToken(_lptoken);
-        
+        dataFeed = AggregatorV3Interface(0x42585eD362B3f1BCa95c640FdFf35Ef899212734);
+
 
 
     }
 
-    function getDataPoints() public view returns(uint[] memory){
-        return dataPoints;
-    }
 
-    //ONLY HERE FOR TESTING PURPOSES, NEEDS TO BE REMOVED BEFORE ACTUAL USE :D
-    function setExternalRatio(uint256 _ratio) public {
-    lastFetchedExternalRatio = _ratio;
-    }
 
 
     function getChainlinkDataFeedLatestAnswer() public view returns (uint256) {
-        // (
-        //     /* uint80 roundID */,
-        //     int answer,
-        //     /*uint startedAt*/,
-        //     /*uint timeStamp*/,
-        //     /*uint80 answeredInRound*/
-        // ) = dataFeed.latestRoundData();
-        // return answer;
-        // return uint256(2000000000000000000);
-        return lastFetchedExternalRatio;
+        (
+            /* uint80 roundID */,
+            int answer,
+            /*uint startedAt*/,
+            /*uint timeStamp*/,
+            /*uint80 answeredInRound*/
+        ) = dataFeed.latestRoundData();
+        return answer;
+
     }
 
-    function setReserve1(uint _reserve1) public  returns(uint){
-        token1_reserve = _reserve1;
-        return token1_reserve;
-    }
-
-    function setReserve2(uint _reserve2) public  returns(uint){
-        token2_reserve = _reserve2;
-        return token2_reserve;
-    }
 
     function getReserveRatio() public view returns(uint){  
         require(token1_reserve> 0 && token2_reserve > 0 );

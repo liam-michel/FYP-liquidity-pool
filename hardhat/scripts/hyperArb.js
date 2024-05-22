@@ -70,9 +70,9 @@ const newArbitrage = async (pools, swaps, account, external_ratio) => {
     internal_ratio,
     external_ratio_scaled
   );
-  const enoughDifference = percentageDifference > 0.1 ? true : false;
+  const enoughDifference = percentageDifference > 0.01 ? true : false;
 
-  let doArbitrage = Math.random() > 0.5 ? true : false;
+  let doArbitrage = true;
   doArbitrage = doArbitrage && enoughDifference;
 
   //alligned
@@ -97,7 +97,7 @@ const newArbitrage = async (pools, swaps, account, external_ratio) => {
       Math.floor(BigNumber(optimalAmountA).multipliedBy(external_ratio))
     );
 
-    const chosenAmount = getRandomInt(optimalB / BigInt(2), optimalB);
+    const chosenAmount = optimalB;
 
     ////////console.log("chosenAmount: ", chosenAmount);
     //purchase the amount of the token from the external market
@@ -151,7 +151,7 @@ const newArbitrage = async (pools, swaps, account, external_ratio) => {
     ////////console.log("Optimal amount of y to add in: ", optY);
     //optY is the optimal amount of Y to add into the pool
 
-    const chosenAmount = getRandomInt(optY / BigInt(2), optY);
+    const chosenAmount = optY;
 
     //chosenAmount is the amount of Y that we are going to add into the pool
 
@@ -201,7 +201,7 @@ const newArbitrage = async (pools, swaps, account, external_ratio) => {
       token2
     );
 
-    const chosenAmount = getRandomInt(optimalB / BigInt(2), optimalB);
+    const chosenAmount = optimalB;
 
     //amount of B that we have purchased for our A tokens
     const amountBExternal = BigInt(
@@ -252,7 +252,7 @@ const newArbitrage = async (pools, swaps, account, external_ratio) => {
     //optimal amount of X to put into the pool
     //////console.log("Amount of X to put in: ", optA);
 
-    const chosenAmount = getRandomInt(optA / BigInt(2), optA);
+    const chosenAmount = optA;
 
     //chosenAmount is the amount of X that we are going to put into the pool
     for (let i = 0; i < pools.length; i++) {
@@ -283,7 +283,7 @@ const newArbitrage = async (pools, swaps, account, external_ratio) => {
   } else {
     //console.log("no arb, random swap");
     //calculate a percentage between 1 and 10 , we will swap this
-    const percentage = (Math.random() + Math.random()) / 10; //constrain the value between 0 and 0.1;
+    const percentage = (Math.random() + Math.random()) / 100; //constrain the value between 0 and 0.1;
     const reserve = tokenChoice == token1 ? token1_reserve : token2_reserve;
     const amount = BigInt(
       Math.floor(BigNumber(reserve).multipliedBy(percentage).dividedBy(100))
@@ -518,7 +518,7 @@ const main = async () => {
   const value1 = BigNumber(20);
   const transactionVolume = simulatePoissonProcess(lambda, duration);
   console.log(transactionVolume);
-  const assetRatios = randomWalk(1.6, 0.03, 199);
+  const assetRatios = randomWalk(1.8, 0.03, 199);
   // const assetRatios = Array(400).fill(2);
   const initialRatio = assetRatios[0];
   const value2 = BigNumber(value1).dividedBy(initialRatio);

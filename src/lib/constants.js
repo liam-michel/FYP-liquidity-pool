@@ -1,7 +1,7 @@
-export const t1Address = "0xf985249b2d145Ab67b7184CeB88f240b6F4Bb8A9";
-export const t2Address = "0xf09DCdFD2139Ceb2CC75C5d51d445EC17a3e7629";
-export const LPTokenAddress = "0xE8ccB9058f81Cd242eD89Ac5141E50F41087fDEb";
-export const LPAddress = "0xEfB3E028c628d2e046Ab4FFe297A77D843aE9780";
+export const t1Address = "0x79DA31a10697484B7054D97CeE80C5890e755cE4";
+export const t2Address = "0xBF3d65755905dBB08f81A228E3db7c90dDfB02d1";
+export const LPTokenAddress = "0xB0A34a893A8cc7CcE2338298e4F402c363955256";
+export const LPAddress = "0xAa08E58234a257ed40B4611E3ff429e37b5CC300";
 export const rpc = "https://rpc.sepolia.org";
 
 export const LPTokenABI = [
@@ -521,12 +521,12 @@ export const testABI = [
 export const tokens = [
   {
     address: t1Address,
-    symbol: "T1",
+    symbol: "swap1",
     decimals: 18,
   },
   {
     address: t2Address,
-    symbol: "T2",
+    symbol: "swap2",
     decimals: 18,
   },
   {

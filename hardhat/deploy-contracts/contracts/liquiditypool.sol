@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0
 
 pragma solidity 0.8.20;
-import "hardhat/console.sol";
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "./LpToken.sol";
+
 // 000000000000000000
 
 struct Deposit{
@@ -12,162 +12,26 @@ struct Deposit{
     uint lockPeriodEnd;
 }
 
-contract VariableLiquidityPool{
+contract LiquidityPool{
     uint public lockPeriod =  1 minutes / 2; 
     mapping(address => Deposit) deposits;
     address LPTOKEN_ADDRESS;
     LpToken public lptoken;
     ERC20 public token1;
     ERC20 public token2;
+
     uint public token1_reserve = 0;
     uint public token2_reserve = 0;
-    uint public precision = 1e18;
-    uint public baseFee = 3*1e15;
-    uint[] public dataPoints;
-    uint private lastCheckTime = block.timestamp;
-    uint256 public lastFetchedExternalRatio = 0;
-    uint256 public average_external_ratio;
-    uint public perc_diff = 0;
-    bool public executeSwapLogic = false;
+    uint precision = 1e18;
 
     constructor(address _t1, address _t2, address _lptoken){
         token1 = ERC20(_t1);
         token2 = ERC20(_t2);
         lptoken = LpToken(_lptoken);
-        
-
 
     }
-
-    function getDataPoints() public view returns(uint[] memory){
-        return dataPoints;
-    }
-
-    //ONLY HERE FOR TESTING PURPOSES, NEEDS TO BE REMOVED BEFORE ACTUAL USE :D
-    function setExternalRatio(uint256 _ratio) public {
-    lastFetchedExternalRatio = _ratio;
-    }
-
-
-    function getChainlinkDataFeedLatestAnswer() public view returns (uint256) {
-        // (
-        //     /* uint80 roundID */,
-        //     int answer,
-        //     /*uint startedAt*/,
-        //     /*uint timeStamp*/,
-        //     /*uint80 answeredInRound*/
-        // ) = dataFeed.latestRoundData();
-        // return answer;
-        // return uint256(2000000000000000000);
-        return lastFetchedExternalRatio;
-    }
-
-    function setReserve1(uint _reserve1) public  returns(uint){
-        token1_reserve = _reserve1;
-        return token1_reserve;
-    }
-
-    function setReserve2(uint _reserve2) public  returns(uint){
-        token2_reserve = _reserve2;
-        return token2_reserve;
-    }
-
-    function getReserveRatio() public view returns(uint){  
-        require(token1_reserve> 0 && token2_reserve > 0 );
-        //console.log('calculating new reserve ratio');
-        //console.log(token1_reserve);
-        //console.log(token2_reserve);
-
-        uint ratio = (token2_reserve * precision) / token1_reserve;
-        return ratio;
-
-    }
-
-    function withFee(uint amount) public view returns(uint){
-        //console.log('made it to withfee');
-        //console.log(10**18);
-        //console.log(baseFee);
-        uint adjusted = 10**18 - baseFee;
-        //console.log('percentage to receive is:', adjusted);
-        uint minusFee = amount * (10**18 - baseFee) / 10**18;
-        return minusFee;
-    }
-
-
-    //tA / tB should be == the price feed
-    function calculateNewSwapFee() public{
-        require(token1_reserve > 0 && token2_reserve > 0);
-        uint internal_ratio = getReserveRatio(); 
-
-        uint percentageDifference = 0;
-        if(average_external_ratio > internal_ratio){
-            percentageDifference = (average_external_ratio - internal_ratio) *1e18 / internal_ratio;
-        }else{
-            percentageDifference = (internal_ratio - average_external_ratio) *1e18 / average_external_ratio;
-
-        }   
-        perc_diff = percentageDifference;
-        //console.log('percentage difference below');
-        //console.log(percentageDifference);
-        if(percentageDifference < 3*1e15){
-            //console.log('minimal difference, setting base fee');
-            baseFee = 3*1e15;
-        }else{
-
-
-            uint newFee = perc_diff * 5 / 10;
-            //console.log('calculated new fee');
-            baseFee = newFee;
-            //if the difference is more than 50%, then we cap the fee at 50%
-            if(newFee > 5e17){
-                baseFee = 5e17;
-            }
-        }
-
-        // return "Swap fee updated successfully";
 
     
-    }
-        //function to calculate the time since last chainlink ratio fetch
-    function calculateTimeDiff() private view returns(bool){
-        if(( block.timestamp - lastCheckTime) > 1 minutes){
-            return true;
-        }
-        return false;
-    }
-
-    function calculateSMA() private{
-        require(dataPoints.length>0);
-        uint sum = 0;
-        for(uint i= 0; i < dataPoints.length; i++){
-            sum += dataPoints[i];
-        }
-        uint average = sum / dataPoints.length;
-        average_external_ratio = uint256(average);
-    }
-
-
-    //function for shifting the points in the array back
-    function shiftPoints(uint point) private{
-        if(dataPoints.length<5){
-            dataPoints.push(point);
-        }
-        else{
-            for(uint i=0; i < dataPoints.length -1; i ++){
-                dataPoints[i] = dataPoints[i+1];
-            }   
-            dataPoints[dataPoints.length-1] = point;
-        }
-        calculateSMA();
-    }
-
-    // function calculatePercentageDifference(uint256 num1, uint256 num2) public pure returns (uint256) {
-    //     require(num2 != 0, "Cannot divide by zero");
-    //     uint256 difference = (num1 > num2) ? (num1 - num2) : (num2 - num1);
-    //     uint256 percentage = (difference * 100) / num2;
-    //     return percentage;
-    // }
-
     modifier validSwap(address _token){
         require(_token == address(token1) || _token == address(token2), "Invalid token type for this swap");
         _;
@@ -197,6 +61,12 @@ contract VariableLiquidityPool{
 
     function min(uint x, uint y) private pure returns (uint){
         return x<=y? x: y;
+    }
+    function getReserveRatio() public view returns(uint){  
+        require(token1_reserve> 0 && token2_reserve > 0 );
+        uint ratio = (token2_reserve * precision) / token1_reserve;
+        return ratio;
+
     }
 
     function updateReserves(uint _token1_reserve, uint _token2_reserve) private{
@@ -248,7 +118,6 @@ contract VariableLiquidityPool{
     function addLiquidity(uint _amount1, uint _amount2, uint slippage) external returns(uint shares) {
         //if 0 of either token is supplied, abort
         require(_amount1 >0 && _amount2>0);
-
         //first check if the passed in # of tokens satisfies the ratio of the reserves (such that price will not change when adding this liquidity)
         if(token1_reserve > 0 || token2_reserve >0 ){
             //if passed amounts don't satisfiy, then find new ratios that do
@@ -282,7 +151,6 @@ contract VariableLiquidityPool{
 
         //update the current user deposit
         addDeposit(shares);
-
         return shares;
  
     }
@@ -323,12 +191,16 @@ contract VariableLiquidityPool{
 
         //burn the LP tokens that the user has redemeed for their share of liquidity pool reserves
         lptoken.burn(msg.sender, shares);
-    }  
+    }
+    function amountWithFee(uint countIn) public view returns(uint){
+        uint countInWithFee = (countIn * 997) / 1000;
+        return countInWithFee;
+    }
 
-    function calculateSwap(uint countIn, uint inReserve, uint outReserve) public view returns(uint amountOut){
+
+    function calculateSwap(uint countIn, uint inReserve, uint outReserve) public pure returns(uint amountOut){
         //calculate amount of token in (with fee of 0.3%)
-        uint countInWithFee = withFee(countIn);
-        //console.log('countInWithFee:', countInWithFee);
+        uint countInWithFee = (countIn * 9970) / 10000;
         //dy = ydx / x + dx 
         amountOut =  (outReserve * countInWithFee) / (inReserve + countInWithFee );
     }
@@ -357,28 +229,13 @@ contract VariableLiquidityPool{
         //check what token we are receiving
         bool isToken1 = (_token == address(token1));
         (ERC20 tokenIn, ERC20 tokenOut, uint inReserve, uint outReserve ) = isToken1? (token1, token2, token1_reserve, token2_reserve): (token2, token1, token2_reserve, token1_reserve);
-        //console.log('current internal ratio is:', getReserveRatio());
-
-        if(calculateTimeDiff() || executeSwapLogic){
-            //console.log('Calculating new swap fee');
-            uint256 newRatio = getChainlinkDataFeedLatestAnswer();
-            //console.log('new ratio is:', newRatio);
-            shiftPoints(newRatio);
-            calculateNewSwapFee();
-        }
-
-
-        //swap logic here
-
         amountOut = calculateSwap(countIn, inReserve, outReserve);
-        //console.log('calculated amount out');
         //transfer the 'inToken' in
         tokenIn.transferFrom(msg.sender, address(this), countIn);
         //transfer the 'amountOut' amount of tokens to sender
         tokenOut.transfer(msg.sender, amountOut);
         //update the reserves to reflect new balances;
         updateReserves(token1.balanceOf(address(this)), token2.balanceOf(address(this)));
-        executeSwapLogic = !executeSwapLogic;
 
     }
 
