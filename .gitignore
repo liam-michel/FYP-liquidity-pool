@@ -36,5 +36,6 @@ yarn-error.log*
 next-env.d.ts
 **/node_modules
 
-./hardhat/artifcats
-./hardhat/cache
+/hardhat/artifacts
+/hardhat/cache
+/hardhat/transResults

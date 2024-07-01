@@ -2,6 +2,8 @@
 
 # CRYPTO-CURRENCY LIQUIDITY POOLS WITH OFF-CHAIN DATA INTEGRATION FOR MITIGATING IMPERMANENT LOSS
 
+## Before anything, rememember to run **npm install **
+
 ## How to run the front-end
 
 To run the frontend simply run the command \

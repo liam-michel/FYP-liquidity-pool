@@ -79,9 +79,7 @@ export const NavBar = () => {
       className="flex items-center justify-between px-6 py-7 rounded-xl w-full"
       style={{ background: "black" }}
     >
-      <div className="flex-1">
-        {/* If you have a logo or other elements on the left side, they go here */}
-      </div>
+      <div className="flex-1"></div>
       <div className="flex gap-4 px-6 justify-end">
         <ConnectWalletButton />
       </div>
